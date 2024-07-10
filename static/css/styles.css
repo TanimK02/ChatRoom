@@ -1,0 +1,64 @@
+:root {
+    --co-colorsBg: #dddace;
+    --co-colors1 : #008080;
+    --co-colors2 : #d1a828;
+}
+
+
+body {
+    background-color: var(--co-colorsBg);
+}
+
+.container{
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 0;
+
+}
+
+h1 {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+form {
+    margin-top: 0;
+    width: 600px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    border-radius: 20px;
+    padding-bottom: 20px;
+    background-color: var(--co-colors1);
+    border: 10px solid var(--co-colors2);
+}
+
+form h2 {
+    color: black;
+}
+
+img {
+    width: 200px;
+    margin-bottom: 0;
+}
+
+
+p {
+    text-align: center;
+}
+
+input {
+    border-radius: 10px;
+    border: none;
+}
+
+input[type="text"] {
+    width: 300px;
+    height: 30px;
+}
