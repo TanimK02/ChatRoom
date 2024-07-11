@@ -1,0 +1,11 @@
+Flask
+Flask-Smorest
+Flask-SQLAlchemy
+passlib
+marshmallow
+python-dotenv
+redis[hiredis]
+psycopg2-binary
+alembic
+flask-migrate
+bcrypt
