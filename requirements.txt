@@ -9,3 +9,6 @@ psycopg2-binary
 alembic
 flask-migrate
 bcrypt
+Flask-WTF
+WTForms
+email-validator

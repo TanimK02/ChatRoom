@@ -11,7 +11,7 @@ def create_app():
     app.config["API_VERSION"] = "v1"
     app.config["OPENAPI_VERSION"] = "3.1.0"
     app.config["OPENAPI_URL_PREFIX"] = "/"
-
+    app.config['WTF_CSRF_ENABLED'] = False
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
     app.config[
         "OPENAPI_SWAGGER_UI_URL"
