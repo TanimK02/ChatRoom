@@ -12,3 +12,5 @@ bcrypt
 Flask-WTF
 WTForms
 email-validator
+flask-login
+flask-socketio

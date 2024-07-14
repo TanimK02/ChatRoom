@@ -1,7 +1,10 @@
-const signUpForm = document.getElementById("sign-up");
 
 
-signUpForm.addEventListener("submit", (event) => {
-   
 
-})
+const connect_to_server = () => {
+    const socket = io();
+
+    socket.on('connect', () => {
+        
+    });
+}

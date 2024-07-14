@@ -8,7 +8,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="../static/css/styles.css">
     </head>
-    <body>
+    <body onload="connect_to_server()">
         <main>
             <div class="container">
                 <a href="/" target="_self"><img src="{{ url_for('static', filename='images/logo.png') }}" /></a>
@@ -47,6 +47,5 @@
                 </div>
                 </div>
         </main>
-        <script src="../static/js/script.js" defer></script>
     </body>
 </html>

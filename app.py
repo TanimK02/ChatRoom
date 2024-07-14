@@ -1,8 +1,11 @@
 from flask import Flask, request
+from flask_login import LoginManager
 from flask_smorest import Api, abort
 from flask_migrate import Migrate
 from sqlalchemy.exc import SQLAlchemyError
 from db import db
+from models import UserModel
+from socket_handler import socketio
 from resources.user import user_blp
 
 def create_app():
@@ -17,9 +20,24 @@ def create_app():
         "OPENAPI_SWAGGER_UI_URL"
     ] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///example.db'
+    app.config['SECRET_KEY'] = "12dsfaa"
+
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(id):
+        try:
+            return db.session.execute(db.select(UserModel).where(UserModel.id == id)).scalar_one()
+        except SQLAlchemyError:
+            return None
+
+    socketio.init_app(app)
+
     db.init_app(app)
     with app.app_context():
         db.create_all()
     api = Api(app)
     api.register_blueprint(user_blp)
+
     return app
