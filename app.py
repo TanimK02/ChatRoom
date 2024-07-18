@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_cors import CORS
 from flask_login import LoginManager
 from flask_smorest import Api, abort
 from flask_migrate import Migrate

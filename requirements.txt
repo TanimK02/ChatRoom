@@ -16,3 +16,4 @@ flask-login
 flask-socketio
 gunicorn
 gevent
+flask-cors
