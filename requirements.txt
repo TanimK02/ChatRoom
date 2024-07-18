@@ -15,4 +15,4 @@ email-validator
 flask-login
 flask-socketio
 gunicorn==20.1.0
-eventlet==0.31.0
+gevent==21.8.0
