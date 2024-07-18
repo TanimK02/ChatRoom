@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from models import RoomModel
 import sys
 import logging
-socketio = SocketIO(cors_allowed_origins='https://wuji.herokuapp.com')
+socketio = SocketIO()
 
 @socketio.on('message_json')
 def handle_message(data):
