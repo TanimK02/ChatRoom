@@ -1,6 +1,5 @@
 :root {
     --co-colorsBg: #87CEEB;
-    --co-colorsBg2:#EB8C3A ;
     --co-colors1 : #87CEEB;
     --co-colors2 : #F0F8FF;
 }
@@ -107,6 +106,7 @@ header {
 ul {
     padding-left: 0;
     margin: 0;
+    list-style-type: none;
 }
 
 main {
@@ -118,7 +118,7 @@ main {
 }
 
 .chat-container {
-    background-color: var(--co-colorsBg2);
+    background-color: var(--co-colors2);
     margin-top: 50px;
     height: 80vh;
     width: 80vw;
@@ -148,43 +148,195 @@ main {
 
 .message-container input {
     width: 80%;
+    border: 1px solid black;
 }
 
 .room-div {
     position: absolute;
     display: none;
-    grid-template-rows: 5px 20px 100px 20px;
-    grid-template-columns: 20px 100px 100px 20px 20px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 220px;
+    height: 100px;
     top: 20%;
     left: 70%;
-    gap: 20px;
     z-index: 100;
-    background-color: var(--co-colorsBg2);
+    background-color: var(--co-colorsBg);
     border-radius: 20px;
     border: 5px solid black;
 }
 
+@media (max-width: 1450px) 
+{    .room-div {
+        left: 0%;
+    }
+}
+
+
+.JR-CM {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
 #JR-btn {
-    grid-row: 3/3;
-    grid-column: 2/2;
     border-radius: 20px;
     border: none;
     background-color: white;
 }
 
 #CM-btn {
-    grid-row: 3/3;
-    grid-column: 3/3;
     border-radius: 20px;
     border: none;
     background-color: white;
 }
 
 #RX-btn {
-    grid-row: 2/2;
-    grid-column: 4/4;
     border-radius: 20px;
     border: none;
     background-color: white;
     
+}
+
+.rx-div {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+#msg-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding-top: 20px;
+    overflow-y: scroll;
+    margin-bottom: 20px;
+}
+
+#msg-list li {
+    padding-left: 40px;
+    width: 100%;
+    border-bottom: 1px solid gray;
+}
+
+.rooms-container header div ul {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.rooms-container {
+    position: absolute;
+    display: none;
+    background-color: var(--co-colorsBg);
+    height: 400px;
+    width: 250px;
+    border-radius: 20px;
+    left: 75%;
+    z-index: 150;
+    border: 5px solid black;
+}
+
+@media (max-width: 1450px) 
+{    .rooms-container {
+        left: 0%;
+    }
+}
+
+.r-header {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+    border-bottom: 5px solid black;
+}
+
+#room-creator-div {
+    display: none;
+    position: absolute;
+    left: 25%;
+    z-index: 150;
+}
+
+@media (max-width: 1450px) 
+{    #room-creator-div {
+        left: 0%;
+    }
+}
+
+#room-creator-div form{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    border: 5px solid black;
+}
+
+@media (max-width: 1450px) 
+{    #room-creator-div form {
+        width: 200px;
+    }
+    
+    input[type="text"] {
+        width: 180px;
+    }
+}
+
+#room-creator-div p {
+    position: relative;
+    top: 0%;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+}
+
+#room-list, #room-list li, #room-list li button {
+    width: 100%;
+}
+
+#room-list li button {
+    height: 30px;
+}
+
+#room-list li button:nth-last-child() {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border: none;
+    background-color: var(--co-colors2);
+}
+
+.joiner-div {
+    display: none;
+    position: absolute;
+    left: 50vw;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--co-colors1);
+    border: 5px solid black;
+    border-radius: 20px;
+    gap: 10px;
+    width: 300px;
+}
+
+@media (max-width: 1450px){
+    .joiner-div {
+        width: 200px;
+    }
+}
+
+.joiner-div p {
+    align-self: flex-end;
+    margin: 0 10px 0 0;
+
+}
+
+.joiner-div h2 {
+    margin: 0;
 }

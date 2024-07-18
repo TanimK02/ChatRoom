@@ -1,7 +1,7 @@
 from flask.views import MethodView
 from sqlalchemy.exc import SQLAlchemyError
 from models import UserModel
-from schemas import UserForm, LoginForm
+from schemas import UserForm, LoginForm, RoomForm
 from flask_login import login_user, login_required, logout_user
 from flask_socketio import disconnect
 from db import db
@@ -26,11 +26,16 @@ class HomeOrLogin(MethodView):
             user = db.session.execute(db.select(UserModel).where(UserModel.username==form.username.data)).scalar_one_or_none()
             if user and bcrypt.checkpw(form.password.data.encode('utf-8'), user.password):
                 login_user(user)
-                return redirect(url_for("Users.JoinRoom"))
+                return redirect(url_for("Users.home"))
             else:
                 flash("Username or password is wrong/doesn't exist.")
                 return render_template("index.html", form = form, success="Username or password is wrong/doesn't exist.")
-                 
+
+@user_blp.route("/home")
+@login_required
+def home():
+    return render_template("chatroom.html", chatName="Join A Room", form = RoomForm())
+
 @user_blp.route("/sign_up")
 class SignUp(MethodView):
     def get(self):
@@ -68,13 +73,3 @@ class LogOut(MethodView):
         disconnect()
         return redirect(url_for("Users.HomeOrLogin"))
     
-@user_blp.route("/room/<name>")
-@user_blp.route("/room", defaults={"name": None})
-class JoinRoom(MethodView):
-
-    @login_required
-    def get(self, name):
-        if not name:
-            return render_template("chatroom.html", chatName="Join A Room")
-        else:
-            return render_template("chatroom.html", chatName="Tanim's chat")
