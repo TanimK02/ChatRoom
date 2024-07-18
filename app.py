@@ -37,7 +37,7 @@ def create_app():
         except SQLAlchemyError:
             return None
 
-    socketio.init_app(app, cors_allowed_origins='https://wuji.herokuapp.com')
+    socketio.init_app(app, cors_allowed_origins='*')
 
     db.init_app(app)
     with app.app_context():
