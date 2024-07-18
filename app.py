@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_cors import CORS
 from flask_login import LoginManager
 from flask_smorest import Api, abort
@@ -12,6 +12,7 @@ from resources.rooms import room_blp
 import logging
 import sys
 import os
+
 def create_app():
     app = Flask(__name__)
     logging.basicConfig(level=logging.DEBUG)
@@ -21,9 +22,7 @@ def create_app():
     app.config["OPENAPI_URL_PREFIX"] = "/"
     app.config['WTF_CSRF_ENABLED'] = False
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
-    app.config[
-        "OPENAPI_SWAGGER_UI_URL"
-    ] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+    app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///../example.db'
     app.config['SECRET_KEY'] = "12dsfaa"
     CORS(app)
@@ -37,7 +36,8 @@ def create_app():
         except SQLAlchemyError:
             return None
 
-    socketio.init_app(app, cors_allowed_origins='*')
+    # No Redis message queue
+    socketio.init_app(app, cors_allowed_origins="*")
 
     db.init_app(app)
     with app.app_context():
@@ -54,8 +54,7 @@ def create_app():
     logger.addHandler(console_handler)
     return app
 
-
 app = create_app()
 
 if __name__ == "__main__":
-    socketio.run(app)
+    socketio.run(app, debug=True)
