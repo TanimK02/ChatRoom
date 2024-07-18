@@ -14,5 +14,5 @@ WTForms
 email-validator
 flask-login
 flask-socketio
-gunicorn==20.1.0
-gevent==21.8.0
+gunicorn
+gevent
