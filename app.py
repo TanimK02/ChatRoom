@@ -52,3 +52,9 @@ def create_app():
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     return app
+
+
+app = create_app()
+
+if __name__ == "__main__":
+    app.run()
