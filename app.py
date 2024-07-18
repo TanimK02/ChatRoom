@@ -26,7 +26,7 @@ def create_app():
     ] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///../example.db'
     app.config['SECRET_KEY'] = "12dsfaa"
-
+    CORS(app)
     login_manager = LoginManager()
     login_manager.init_app(app)
 
