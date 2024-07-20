@@ -3,7 +3,7 @@ from flask import request
 from flask_login import current_user
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
-from models import RoomModel
+from models import RoomModel, user_rooms
 import sys
 import logging
 socketio = SocketIO()
@@ -26,13 +26,30 @@ def handle_message(data):
  
 @socketio.on('join')
 def on_join(data):
+    if not isinstance(data, dict):
+        return False
     if data.get("room", None):
         room = db.session.execute(db.select(RoomModel).where(RoomModel.name==data.get("room"))).scalar_one_or_none()
+        room_to_join= data['room']
         if room:
-            if room.password and room.password != data.get("password", None):
-                return False
-            username = current_user.username
-            room_to_join= data['room']
+            if room.password:
+                    check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==current_user.id).where(user_rooms.c.room==room.id)).scalar()
+                    if check:
+                        join_room(room_to_join)
+                        emit('join', room_to_join, to=request.sid)
+                    elif room.password == data.get("password", None):
+                        room.people += 1
+                        try:
+                            room.users.append(current_user)
+                            db.session.add(room)
+                            db.session.commit()
+                        except SQLAlchemyError:
+                            return False
+                    else:
+                        return False
+                    join_room(room_to_join)
+                    emit('join', room_to_join, to=request.sid)
+                    return
             join_room(room_to_join)
             room.people += 1
             try:

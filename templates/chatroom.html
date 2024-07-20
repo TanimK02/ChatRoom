@@ -1,63 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>ChatRoom: Home</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="../static/css/styles.css">
-        <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <main>
-            <header>
+<head>
+    <meta charset="utf-8">
+    <title>ChatRoom: Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main>
+        <!-- Header Section -->
+        <header>
             {% if chatName %}
-            <h1 id="room-name">{{chatName}}</h1>
+                <h1 id="room-name">{{chatName}}</h1>
             {% endif %}
-            <button id="room-btn">Change Room</button>
+            <button id="room-btn">Join/Create Room</button>
             <div class="room-div" id="room-div">
                 <div class="rx-div">
-                <button id="RX-btn">X</button>
+                    <button id="RX-btn">X</button>
                 </div>
                 <div class="JR-CM">
-                <button id="JR-btn">Join Room</button>
-                <button id="CM-btn">Create Room</button>
+                    <button id="JR-btn">Join Room</button>
+                    <button id="CM-btn">Create Room</button>
                 </div>
             </div>
-            <div id="rooms-container" class="rooms-container">
-                <div class="r-header">
-                    <h2>Rooms</h2>
-                    <button id="rooms-container-x-button">X</button>
-                </div>
-                    <div class="r-div">
-                        <ul id="room-list">
-                            
-                        </ul>
-                    </div>
-            </div>
-            <div id="room-creator-div">
-                <form id="room-creator-form" action="/room/create" method="post">
-                    <p><button id="rooms-creator-x-button">X</button></p>
-                    <h2 id="create-h2">Create Room</h2>
-                    <input name="name" type="text" placeholder="name"/>
-                    <input name="password" type="text" placeholder="password"/>
-                    <input type="submit" value="Create"/>
-                </form>
-            </div>
-            </header>
-            <div class="joiner-div" id="joiner-div">
-            </div>
-            <div class="chat-container">
-                <ul id="msg-list">
+            <button id="MR-button">My Rooms</button>
+        </header>
 
-                </ul>
-                <div class="message-container">
-                <input id="message" type= "text" />
-                <button id="send-btn"><img src="{{ url_for('static', filename='images/send.png') }}" /></button>
+        <!-- Rooms Container -->
+        <div id="rooms-container" class="rooms-container">
+            <div class="r-header">
+                <h2>Rooms</h2>
+                <button id="rooms-container-x-button">X</button>
+            </div>
+            <div class="r-div">
+                <ul id="room-list"></ul>
+                <div class="prev-next" id="prev-next">
+                    <button id="prev">prev</button>
+                    <p>1</p>
+                    <button id="next">next</button>
                 </div>
             </div>
-        </main>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
-        <script src="../static/js/script.js" defer></script>
-    </body>
+        </div>
+
+        <!-- Room Creator Div -->
+        <div id="room-creator-div">
+            <form id="room-creator-form" action="/room/create" method="post">
+                <p><button id="rooms-creator-x-button">X</button></p>
+                <h2 id="create-h2">Create Room</h2>
+                <input name="name" type="text" placeholder="name"/>
+                <input name="password" type="text" placeholder="password"/>
+                <input type="submit" value="Create"/>
+            </form>
+        </div>
+
+        <!-- Joiner Div -->
+        <div class="joiner-div" id="joiner-div"></div>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <ul id="msg-list"></ul>
+            <div class="message-container">
+                <input id="message" type="text"/>
+                <button id="send-btn">
+                    <img src="{{ url_for('static', filename='images/send.png') }}" alt="Send"/>
+                </button>
+            </div>
+        </div>
+
+        <!-- My Rooms -->
+        <div class="my-rooms" id="my-rooms">
+            <div class="r-header">
+                <h2>My Rooms</h2>
+                <button id="my-rooms-x-button">X</button>
+            </div>
+                <ul id="my-rooms-list">
+                    
+                </ul>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script src="../static/js/script.js" defer></script>
+</body>
 </html>

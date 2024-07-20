@@ -30,6 +30,8 @@ class HomeOrLogin(MethodView):
             else:
                 flash("Username or password is wrong/doesn't exist.")
                 return render_template("index.html", form = form, success="Username or password is wrong/doesn't exist.")
+        else:
+            render_template("index.html", form = LoginForm())
 
 @user_blp.route("/home")
 @login_required

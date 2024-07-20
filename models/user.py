@@ -13,7 +13,7 @@ class UserModel(db.Model, UserMixin):
     email: Mapped[str] = mapped_column(nullable=False)
     password: Mapped[str] = mapped_column(String(60), nullable=False)
     pic_url: Mapped[str] = mapped_column(nullable=True)
-    
+    rooms = relationship("RoomModel", back_populates='users', secondary="user_rooms", lazy='dynamic')
     @staticmethod
     def get_user(username, password):
         try:

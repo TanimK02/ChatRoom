@@ -1,9 +1,11 @@
+/* Root Variables */
 :root {
     --co-colorsBg: #87CEEB;
-    --co-colors1 : #87CEEB;
-    --co-colors2 : #F0F8FF;
+    --co-colors1: #87CEEB;
+    --co-colors2: #F0F8FF;
 }
 
+/* Global Styles */
 * {
     box-sizing: border-box;
 }
@@ -15,22 +17,29 @@ body {
     width: 100%;
 }
 
-.container{
-
+.container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding-top: 0;
-
 }
 
+/* Typography */
 h1 {
-    margin-bottom: 0;
-    margin-top: 0;
+    margin: 0;
     text-align: center;
 }
 
+form h2 {
+    color: black;
+}
+
+p {
+    text-align: center;
+}
+
+/* Forms */
 form {
     margin-top: 0;
     width: 600px;
@@ -46,24 +55,9 @@ form {
     border: 10px solid var(--co-colors2);
 }
 
-form h2 {
-    color: black;
-}
-
-img {
-    width: 200px;
-    margin-bottom: 0;
-}
-
-
-p {
-    text-align: center;
-}
-
 input {
     border-radius: 10px;
     border: none;
-    
 }
 
 input[type="text"], input[type="email"] {
@@ -73,8 +67,8 @@ input[type="text"], input[type="email"] {
     margin: 0;
 }
 
+/* Error Messages */
 .errors {
-    
     list-style-type: none;
     display: flex;
     flex-direction: column;
@@ -84,16 +78,16 @@ input[type="text"], input[type="email"] {
     margin: 0;
 }
 
-.errors li{
+.errors li {
     margin: 0;
     font-size: 10px;
 }
 
-.success-message{
+.success-message {
     font-size: 20px;
-    
 }
 
+/* Header */
 header {
     position: fixed;
     top: 0;
@@ -103,12 +97,14 @@ header {
     justify-content: space-evenly;
 }
 
+/* Lists */
 ul {
     padding-left: 0;
     margin: 0;
     list-style-type: none;
 }
 
+/* Main */
 main {
     width: 100%;
     display: flex;
@@ -117,6 +113,7 @@ main {
     justify-content: center;
 }
 
+/* Chat Container */
 .chat-container {
     background-color: var(--co-colors2);
     margin-top: 50px;
@@ -128,6 +125,8 @@ main {
     justify-content: space-between;
     align-items: center;
 }
+
+/* Message Container */
 .message-container {
     margin-bottom: 10px;
     width: 100%;
@@ -151,61 +150,7 @@ main {
     border: 1px solid black;
 }
 
-.room-div {
-    position: absolute;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    width: 220px;
-    height: 100px;
-    top: 20%;
-    left: 70%;
-    z-index: 100;
-    background-color: var(--co-colorsBg);
-    border-radius: 20px;
-    border: 5px solid black;
-}
-
-@media (max-width: 1450px) 
-{    .room-div {
-        left: 0%;
-    }
-}
-
-
-.JR-CM {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
-
-#JR-btn {
-    border-radius: 20px;
-    border: none;
-    background-color: white;
-}
-
-#CM-btn {
-    border-radius: 20px;
-    border: none;
-    background-color: white;
-}
-
-#RX-btn {
-    border-radius: 20px;
-    border: none;
-    background-color: white;
-    
-}
-
-.rx-div {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-}
-
+/* Message List */
 #msg-list {
     display: flex;
     flex-direction: column;
@@ -223,19 +168,56 @@ main {
     border-bottom: 1px solid gray;
 }
 
-.rooms-container header div ul {
-    display: flex;
+/* Room Div */
+.room-div {
+    position: absolute;
+    display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
+    gap: 10px;
+    width: 220px;
+    height: 100px;
+    top: 20%;
+    left: 70%;
+    z-index: 100;
+    background-color: var(--co-colorsBg);
+    border-radius: 20px;
+    border: 5px solid black;
 }
 
+@media (max-width: 1450px) {
+    .room-div {
+        left: 0%;
+    }
+}
+
+/* JR-CM Buttons */
+.JR-CM {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+#JR-btn, #CM-btn, #RX-btn {
+    border-radius: 20px;
+    border: none;
+    background-color: white;
+}
+
+/* RX Div */
+.rx-div {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+/* Rooms Container */
 .rooms-container {
     position: absolute;
     display: none;
     background-color: var(--co-colorsBg);
-    height: 400px;
+    height: 450px;
     width: 250px;
     border-radius: 20px;
     left: 75%;
@@ -243,12 +225,13 @@ main {
     border: 5px solid black;
 }
 
-@media (max-width: 1450px) 
-{    .rooms-container {
+@media (max-width: 1450px) {
+    .rooms-container {
         left: 0%;
     }
 }
 
+/* Room Header */
 .r-header {
     display: flex;
     justify-content: space-evenly;
@@ -257,6 +240,7 @@ main {
     border-bottom: 5px solid black;
 }
 
+/* Room Creator Div */
 #room-creator-div {
     display: none;
     position: absolute;
@@ -264,13 +248,13 @@ main {
     z-index: 150;
 }
 
-@media (max-width: 1450px) 
-{    #room-creator-div {
+@media (max-width: 1450px) {
+    #room-creator-div {
         left: 0%;
     }
 }
 
-#room-creator-div form{
+#room-creator-div form {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -278,12 +262,12 @@ main {
     border: 5px solid black;
 }
 
-@media (max-width: 1450px) 
-{    #room-creator-div form {
+@media (max-width: 1450px) {
+    #room-creator-div form {
         width: 200px;
     }
-    
-    input[type="text"] {
+
+    #room-creator-div input[type="text"], .joiner-div input[type="text"] {
         width: 180px;
     }
 }
@@ -296,6 +280,7 @@ main {
     justify-content: flex-start;
 }
 
+/* Room List */
 #room-list, #room-list li, #room-list li button {
     width: 100%;
 }
@@ -311,10 +296,13 @@ main {
     background-color: var(--co-colors2);
 }
 
+/* Joiner Div */
 .joiner-div {
     display: none;
     position: absolute;
-    left: 50vw;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -325,7 +313,8 @@ main {
     width: 300px;
 }
 
-@media (max-width: 1450px){
+
+@media (max-width: 1450px) {
     .joiner-div {
         width: 200px;
     }
@@ -334,9 +323,52 @@ main {
 .joiner-div p {
     align-self: flex-end;
     margin: 0 10px 0 0;
-
 }
 
 .joiner-div h2 {
     margin: 0;
+}
+
+/* Pagination Controls */
+.prev-next {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 15px;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.prev-next button {
+    width: 50px;
+    height: 20px;
+}
+
+/* My Rooms */
+.my-rooms {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: var(--co-colorsBg);
+    height: 450px;
+    width: 250px;
+    border-radius: 20px;
+    top: 10%;
+    z-index: 150;
+    border: 5px solid black;
+}
+
+#my-rooms-list, #my-rooms-list li, #my-rooms-list li button {
+    width: 100%;
+}
+
+#my-rooms-list li button {
+    height: 30px;
+}
+
+#my-rooms-list li button:nth-last-child() {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border: none;
+    background-color: var(--co-colors2);
 }

@@ -11,3 +11,4 @@ class RoomModel(db.Model):
     password: Mapped[str] = mapped_column(String(20), nullable=True)
     roles = mapped_column(JSON, nullable=False)
     people: Mapped[int] = mapped_column(Integer(), nullable=False)
+    users = relationship("UserModel", back_populates='rooms', secondary="user_rooms", lazy='dynamic')
