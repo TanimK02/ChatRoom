@@ -26,3 +26,6 @@ class RoomsReturnSchema(Schema):
     def add_password_exists(self, data, many, **kwargs):
         data['password_exists'] = 'password' in data and bool(data['password'])
         return data
+    
+class CreateChannelSchema(Schema):
+    pass

@@ -3,13 +3,15 @@ from flask import request
 from flask_login import current_user
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
-from models import RoomModel, user_rooms
+from models import RoomModel, user_rooms, ChannelModel
 import sys
 import logging
 socketio = SocketIO()
 
 @socketio.on('message_json')
 def handle_message(data):
+    if not isinstance(data, dict):
+        return False
     if data["room"] in rooms(request.sid):
         if data["message"] == "":
             return
@@ -30,13 +32,14 @@ def on_join(data):
         return False
     if data.get("room", None):
         room = db.session.execute(db.select(RoomModel).where(RoomModel.name==data.get("room"))).scalar_one_or_none()
-        room_to_join= data['room']
         if room:
+            channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.id==room.id).where(ChannelModel.name=="general")).scalar_one_or_none()
+            room_to_join = channel.name
             if room.password:
                     check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==current_user.id).where(user_rooms.c.room==room.id)).scalar()
                     if check:
                         join_room(room_to_join)
-                        emit('join', room_to_join, to=request.sid)
+                        emit('join', {"room": data["room"], "channel": "general"}, to=request.sid)
                     elif room.password == data.get("password", None):
                         room.people += 1
                         try:
@@ -46,9 +49,9 @@ def on_join(data):
                         except SQLAlchemyError:
                             return False
                     else:
-                        return False
+                        return emit('join', False, to=request.sid)
                     join_room(room_to_join)
-                    emit('join', room_to_join, to=request.sid)
+                    emit('join', {"room": data["room"], "channel": "general"}, to=request.sid)
                     return
             join_room(room_to_join)
             room.people += 1
@@ -56,10 +59,12 @@ def on_join(data):
                 db.session.add(room)
                 db.session.commit()
             except SQLAlchemyError:
-                return False
-            emit('join', room_to_join, to=request.sid)
+                return emit('join', False, to=request.sid)
+            emit('join', {"room": data["room"], "channel": "general"}, to=request.sid)
+        else:
+            return emit('join', False, to=request.sid)
     else:
-        return False
+        return emit('join', False, to=request.sid)
 
 @socketio.on('leave')
 def on_leave(data):

@@ -1,6 +1,6 @@
 from flask.views import MethodView
 from sqlalchemy.exc import SQLAlchemyError
-from models import RoomModel
+from models import RoomModel, ChannelModel
 from flask_login import login_required, current_user
 from socket_handler import socketio
 from schemas import RoomForm, RoomsReturnSchema
@@ -31,13 +31,22 @@ class RoomOps(MethodView):
                 people = 0
             )
             room.users.append(current_user)
+            
             if hasattr(form, "password"):
                 room.password = form.password.data
             try:
                 db.session.add(room)
                 db.session.commit()
+            except SQLAlchemyError:
+                return {"error": "something went wrong while creating room"}, 400
+            general = ChannelModel(name = "general", room_id = room.id)
+            try:
+                db.session.add(general)
+                db.session.commit()
                 return {"room" : form.name.data}
             except SQLAlchemyError:
+                db.session.delete(room)
+                db.session.commit()
                 return {"error": "something went wrong while creating room"}, 400
         else:
             return {"error": "Form not filled correctly"}, 400

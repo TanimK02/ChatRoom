@@ -12,3 +12,4 @@ class RoomModel(db.Model):
     roles = mapped_column(JSON, nullable=False)
     people: Mapped[int] = mapped_column(Integer(), nullable=False)
     users = relationship("UserModel", back_populates='rooms', secondary="user_rooms", lazy='dynamic')
+    channels = relationship("ChannelModel", back_populates='rooms', lazy='dynamic')

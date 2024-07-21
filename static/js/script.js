@@ -164,12 +164,14 @@ socket.on("message_json", (data) => {
 });
 
 socket.on('join', (data) => {
-    if (data) {
-        roomName.textContent = data;
+    if (data["room"]) {
+        roomName.textContent = data["room"];
         joinerDiv.style.display = 'none';
-        server = data;
+        server = data["channel"];
         console.log(data);
     } else {
+        roomName.textContent = "Join A Room";
+        joinerDiv.querySelectorAll(".errors").forEach(el => el.remove());
         const error = document.createElement("p");
         error.textContent = "Failed to join room";
         error.classList.add("errors");

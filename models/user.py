@@ -10,7 +10,7 @@ class UserModel(db.Model, UserMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
-    email: Mapped[str] = mapped_column(nullable=False)
+    email: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(60), nullable=False)
     pic_url: Mapped[str] = mapped_column(nullable=True)
     rooms = relationship("RoomModel", back_populates='users', secondary="user_rooms", lazy='dynamic')

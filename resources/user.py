@@ -51,6 +51,9 @@ class SignUp(MethodView):
             if db.session.execute(db.select(UserModel).where(UserModel.username == form["username"].data)).scalar_one_or_none():
                 form.username.errors.append("Username already exists")
                 return render_template("sign-up.html", form=form)
+            if db.session.execute(db.select(UserModel).where(UserModel.email == form["email"].data)).scalar_one_or_none():
+                form.email.errors.append("Email already exists")
+                return render_template("sign-up.html", form=form)
             user = UserModel(
                 username = str(form.username.data),
                 password = bcrypt.hashpw(str(form.password.data).encode("utf-8"), bcrypt.gensalt()),
