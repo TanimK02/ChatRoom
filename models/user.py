@@ -1,6 +1,7 @@
 from db import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String
+import uuid
 from sqlalchemy.exc import SQLAlchemyError
 from flask_login import UserMixin
 import bcrypt
@@ -8,7 +9,7 @@ import bcrypt
 class UserModel(db.Model, UserMixin):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(60), nullable=False)

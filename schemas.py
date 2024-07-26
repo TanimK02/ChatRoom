@@ -17,7 +17,7 @@ class RoomForm(FlaskForm):
     password = StringField("Password", [validators.Length(max=20, message="Password is 20 characters max")], render_kw={"autocorrect": "off", "autocapitalize": "off", "autocomplete": "off", "placeholder": "Password"} )
 
 class RoomsReturnSchema(Schema):
-    id = fields.Int(dump_only=True)
+    id = fields.Str(dump_only=True)
     name = fields.Str()
     password = fields.Str(load_only=True)
     password = fields.Bool(dump_only = True)
@@ -28,4 +28,11 @@ class RoomsReturnSchema(Schema):
         return data
     
 class CreateChannelSchema(Schema):
-    pass
+    id = fields.Str(dump_only=True)
+    name = fields.Str()
+    room = fields.Str()
+
+class EditChannelSchema(Schema):
+    new_name = fields.Str()
+    name = fields.Str()
+    room = fields.Str()

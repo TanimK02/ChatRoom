@@ -77,11 +77,11 @@ def myRooms():
         abort(400, message="Something went wrong getting your rooms.")
 
 
-@room_blp.route("/delete_room/<int:id>")
+@room_blp.route("/delete_room/<string:id>")
 @login_required
 def deleteRoom(id):
-    if not isinstance(id, int):
-        abort(400, message="needs to be int.")
+    if not isinstance(id, str):
+        abort(400, message="needs to be string.")
     room = db.session.get(RoomModel, id)
     if not room:
         abort(400, message="Room doesn't exist.")

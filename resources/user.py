@@ -64,7 +64,6 @@ class SignUp(MethodView):
                 db.session.commit()
             except SQLAlchemyError:
                 return render_template("sign-up.html", form=form)
-            result = db.session.execute(db.select(UserModel).where(UserModel.username == form["username"].data)).scalar_one()
             return redirect(url_for("Users.HomeOrLogin", success="Account Made Successfully"))
         else:
             return render_template("sign-up.html", form=form)

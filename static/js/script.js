@@ -167,7 +167,7 @@ socket.on('join', (data) => {
     if (data["room"]) {
         roomName.textContent = data["room"];
         joinerDiv.style.display = 'none';
-        server = data["channel"];
+        server = data["channel_id"];
         console.log(data);
     } else {
         roomName.textContent = "Join A Room";
