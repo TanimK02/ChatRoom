@@ -24,6 +24,19 @@ def handle_message(data):
     else:
         emit('message_json', {"message" : "not in room"}, to=request.sid)
  
+
+@socketio.on("channels_update")
+def update_channels(data):
+    if not isinstance(data, dict):
+        return False
+    if data.get("room", None):
+        if data.get("user", None):
+            room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data.get("room"))).scalar_one_or_none()
+            if room:
+                if data["user"] in room.roles["Owner"] or data["user"] in room.roles["Admin"]:
+                    emit("channels_update", data["channels"], to=data["room"])
+
+
 @socketio.on('join')
 def on_join(data):
     if not isinstance(data, dict):
@@ -31,15 +44,20 @@ def on_join(data):
     if data.get("room", None):
         room = db.session.execute(db.select(RoomModel).where(RoomModel.name==data.get("room"))).scalar_one_or_none()
         if room:
-            channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.room_id==room.id).where(ChannelModel.name=="general")).scalar_one_or_none()
+            if not hasattr(data, "channel"):
+                channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.room_id==room.id).where(ChannelModel.name=="general")).scalar_one_or_none()
+            else:
+                channel = data["channel"]
             room_to_join = channel.id
             username = current_user.username
             if room.password:
                     check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==current_user.id).where(user_rooms.c.room==room.id)).scalar()
                     if check:
                         join_room(room_to_join)
+                        join_room(room.id)
                         emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id}, to=request.sid)
                         emit('message_json', {"message" : username + " joined the room"}, to=room_to_join)
+                        return 
                     elif room.password == data.get("password", None):
                         room.people += 1
                         try:
@@ -51,10 +69,12 @@ def on_join(data):
                     else:
                         return emit('join', False, to=request.sid)
                     join_room(room_to_join)
+                    join_room(room.id)
                     emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id}, to=request.sid)
                     emit('message_json', {"message" : username + " joined the room"}, to=room_to_join)
                     return
             join_room(room_to_join)
+            join_room(room.id)
             room.people += 1
             try:
                 db.session.add(room)

@@ -29,10 +29,10 @@ class RoomsReturnSchema(Schema):
     
 class CreateChannelSchema(Schema):
     id = fields.Str(dump_only=True)
-    name = fields.Str()
-    room = fields.Str()
+    name = fields.Str(required=True)
+    room = fields.Str(required=True)
 
 class EditChannelSchema(Schema):
-    new_name = fields.Str()
-    name = fields.Str()
-    room = fields.Str()
+    new_name = fields.Str(required=True)
+    name = fields.Str(required=True)
+    room = fields.Str(required=True)

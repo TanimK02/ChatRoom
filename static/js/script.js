@@ -23,8 +23,13 @@ const prevNext = document.getElementById("prev-next");
 const mrBtn = document.getElementById("MR-button");
 const myRms = document.getElementById("my-rooms");
 const myRmsXbtn = document.getElementById("my-rooms-x-button");
+const channelList = document.getElementById("channels-list");
+const channelAdd = document.getElementById("add-channel");
+const createChBtn = document.getElementById("create-ch");
 const socket = io();
 let server = "";
+let roomId = "";
+let admin = false;
 
 // Utility Functions
 const clearMsg = () => {
@@ -59,6 +64,7 @@ const loadInRooms = (result) => {
             });
             joinerDiv.querySelector("#join-submit").addEventListener("click", () => {
                 socket.emit('leave', { "room": server });
+                socket.emit('leave', { "room": roomId });
                 clearMsg();
                 socket.emit("join", {
                     "room": `${room.name}`,
@@ -106,6 +112,7 @@ const loadMyRooms = (result) => {
             });
             joinerDiv.querySelector("#join-submit").addEventListener("click", () => {
                 socket.emit('leave', { "room": server });
+                socket.emit('leave', { "room": roomId });
                 clearMsg();
                 socket.emit("join", {
                     "room": `${room.name}`,
@@ -143,6 +150,60 @@ const getMyRooms = async () => {
     const response = await fetch(`/my_rooms`);
     const result = await response.json();
     loadMyRooms(result);
+};
+
+const loadChannels = (result) => {
+    channelList.innerHTML = "";
+    console.log(result);
+    result.forEach((channel) => {
+        const li = document.createElement("li");
+        const el = document.createElement("button");
+        el.textContent = `${channel.name.toUpperCase()}`;
+        li.appendChild(el);
+        channelList.appendChild(li);
+        el.addEventListener("click", () => {
+            socket.emit('leave', { "room": server });
+            clearMsg();
+            socket.emit("join", {
+                "room": `${roomName.textContent}`,
+                "channel_id": `${channel.id}`
+            });
+        })
+    } )
+};
+
+const getChannels = async () => {
+    const response = await fetch(`/load_channels/${roomId}`);
+    const result = await response.json();
+    loadChannels(result);
+};
+
+const addChannel = async() => {
+    const name = channelAdd.querySelector("input").value;
+try {
+    const response = await fetch('/create_channel', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ "room": roomId, "name": name })
+    });
+
+    // Check if the response status is not OK (200-299)
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Optionally, you can handle the response data if needed
+    const data = await response.json();
+    console.log(data); // Handle the data as needed
+
+} catch (error) {
+    console.error('Fetch error:', error);
+    createChBtn.disabled = true; // Handle the error by disabling the button
+    channelAdd.style.display = "none";
+}
+
 }
 
 // Socket Event Handlers
@@ -168,7 +229,9 @@ socket.on('join', (data) => {
         roomName.textContent = data["room"];
         joinerDiv.style.display = 'none';
         server = data["channel_id"];
-        console.log(data);
+        roomId = data["room_id"];
+        console.log(roomId);
+        getChannels();
     } else {
         roomName.textContent = "Join A Room";
         joinerDiv.querySelectorAll(".errors").forEach(el => el.remove());
@@ -178,6 +241,8 @@ socket.on('join', (data) => {
         joinerDiv.querySelector("h2").insertAdjacentElement("afterend", error);
     }
 });
+
+socket.on('channels_update', (result) => loadChannels(result));
 
 // DOM Event Listeners
 rxBtn.addEventListener("click", () => {
@@ -245,6 +310,7 @@ roomForm.addEventListener("submit", async (event) => {
     const result = await response.json();
     if (result.room) {
         socket.emit('leave', { "room": server });
+        socket.emit('leave', { "room": roomId });
         clearMsg();
         socket.emit("join", { "room": `${roomForm.name.value}`, "password": roomForm.password.value ? roomForm.password.value : "" });
         roomName.textContent = roomForm.name.value;
@@ -269,3 +335,9 @@ mrBtn.addEventListener("click", () => {
 myRmsXbtn.addEventListener("click", () => {
     myRms.style.display = myRms.style.display == "block" ? "none" : "block";
 });
+
+channelAdd.querySelector("button").addEventListener("click", addChannel);
+
+createChBtn.addEventListener("click", () => {
+    channelAdd.style.display = channelAdd.style.display == "flex" ? "none" : "flex";
+})

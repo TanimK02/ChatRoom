@@ -9,6 +9,7 @@ from models import UserModel
 from socket_handler import socketio
 from resources.user import user_blp
 from resources.rooms import room_blp
+from resources.channel import channel_blp
 import logging
 import sys
 import os
@@ -47,13 +48,14 @@ def create_app():
     api = Api(app)
     api.register_blueprint(user_blp)
     api.register_blueprint(room_blp)
-    logger = logging.getLogger('sqlalchemy')
-    logger.setLevel(logging.DEBUG)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    api.register_blueprint(channel_blp)
+    # logger = logging.getLogger('sqlalchemy')
+    # logger.setLevel(logging.DEBUG)
+    # console_handler = logging.StreamHandler(sys.stdout)
+    # console_handler.setLevel(logging.DEBUG)
+    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # console_handler.setFormatter(formatter)
+    # logger.addHandler(console_handler)
     return app
 
 app = create_app()
