@@ -52,7 +52,7 @@ def on_join(data):
     if not isinstance(data, dict):
         return False
     if data.get("room", None):
-        room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data.get("room"))).scalar_one_or_none()
+        room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data.get("room"))).scalar_one_or_none()   
         if room:
             channel = ""
             if not data.get("channel_id", None):
@@ -60,45 +60,36 @@ def on_join(data):
                 if channel:
                     channel = channel.id
                 else:
-                    channel = room.channels.all()[0].id
+                    channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.room_id==room.id)).first()[0].id
             else:
-                channels = room.channels.all()
-                channel = ""
-                for i in channels:         
-                    if i.id == data["channel_id"]:
-                        channel = i.id
-                        break
+                channel = db.session.execute(db.select(ChannelModel.id).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
                 if not channel:
                     return
-            room_to_join = channel
             username = current_user.username
             admin = False
             user_id = session.get('_user_id')
             roles = room.roles
-            if room.password:
-                    check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==session.get('_user_id')).where(user_rooms.c.room==room.id)).scalar()
-                    if check:
-                        pass
-                    elif room.password == data.get("password", None):
-                        room.people += 1
-                        try:
-                            room.users.append(current_user)
-                            db.session.add(room)
-                            db.session.commit()
-                        except SQLAlchemyError:
-                            return False
-                    else:
-                        return emit('join', False, to=request.sid)
-                    join_room(room_to_join)
-                    join_room(room.id)
-                    if user_id in roles["Owner"] or user_id in roles["Admins"]:
-                        admin = True
-                    emit('join', {"room": room.name, "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
-                    emit('message_json', {"message" : username + " joined the channel"}, to=room_to_join)
-                    return
             if user_id in roles["Owner"] or user_id in roles["Admins"]:
                 admin = True
-            join_room(room_to_join)
+            if room.password:
+                    check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==session.get('_user_id')).where(user_rooms.c.room==room.id)).scalar_one_or_none()
+                    if not check:
+                        if room.password == data.get("password", None):
+                            room.people += 1
+                            try:
+                                room.users.append(current_user)
+                                db.session.add(room)
+                                db.session.commit()
+                            except SQLAlchemyError:
+                                return False
+                        else:
+                            return emit('join', False, to=request.sid)
+                    join_room(channel)
+                    join_room(room.id)
+                    emit('join', {"room": room.name, "channel_id": channel, "room_id": room.id, "admin": admin}, to=request.sid)
+                    emit('message_json', {"message" : username + " joined the channel"}, to=channel)
+                    return
+            join_room(channel)
             join_room(room.id)
             room.people += 1
             try:
@@ -106,8 +97,8 @@ def on_join(data):
                 db.session.commit()
             except SQLAlchemyError:
                 return emit('join', False, to=request.sid)
-            emit('join', {"room": room.name, "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
-            emit('message_json', {"message" : username + " joined the channel"}, to=room_to_join)
+            emit('join', {"room": room.name, "channel_id": channel, "room_id": room.id, "admin": admin}, to=request.sid)
+            emit('message_json', {"message" : username + " joined the channel"}, to=channel)
         else:
             return emit('join', False, to=request.sid)
     else:

@@ -31,6 +31,11 @@ class CreateChannelSchema(Schema):
     name = fields.Str(required=True)
     room = fields.Str(required=True)
 
+class ReturnChannelSchema(Schema):
+    id = fields.Str(dump_only=True)
+    name = fields.Str(required=True)
+    room_id = fields.Str(required=True)
+
 class DeleteChannelSchema(Schema):
     channel_id = fields.Str(required=True)
     room = fields.Str(required=True)

@@ -42,7 +42,7 @@ class RoomOps(MethodView):
             try:
                 db.session.add(general)
                 db.session.commit()
-                return {"room" : form.name.data}
+                return {"room_id" : room.id, "room_name": room.name}
             except SQLAlchemyError:
                 db.session.delete(room)
                 db.session.commit()
@@ -96,4 +96,10 @@ def deleteRoom(id):
         except SQLAlchemyError:
             current_app.logger.info("here")
             abort(400, message="Something went wrong while deleting the room.")
+    else:
+        room.remove(current_user)
+        try:
+            db.session.commit()
+        except SQLAlchemyError:
+            abort(400, message="Something went wrong from leaving the room")
             

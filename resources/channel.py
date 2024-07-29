@@ -2,7 +2,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from models import RoomModel, ChannelModel, user_rooms
 from flask_login import login_required
 from socket_handler import socketio
-from schemas import CreateChannelSchema, EditChannelSchema, DeleteChannelSchema
+from schemas import CreateChannelSchema, EditChannelSchema, DeleteChannelSchema, ReturnChannelSchema
 from db import db
 from sqlalchemy import func
 from flask import session
@@ -85,7 +85,7 @@ def edit_channel(data):
 
 @channel_blp.route("/load_channels/<string:id>")
 @login_required
-@channel_blp.response(200, CreateChannelSchema(many=True))
+@channel_blp.response(200, ReturnChannelSchema(many=True))
 def load_channels(id):
     user = session.get('_user_id')
     room = db.session.execute(db.select(RoomModel).where(RoomModel.id==id)).scalar()

@@ -171,11 +171,12 @@ const loadChannels = (result) => {
         el.textContent = `${channel.name.toUpperCase()}`;
         li.appendChild(el);
         channelList.appendChild(li);
+        console.log(channel)
         el.addEventListener("click", () => {
             socket.emit('leave', { "room": server });
             clearMsg();
             socket.emit("join", {
-                "room": `${roomName.textContent}`,
+                "room": `${channel.room_id}`,
                 "channel_id": `${channel.id}`
             });
             edChDiv.querySelector("h1").textContent = channel.name.toUpperCase();
@@ -321,9 +322,9 @@ roomForm.addEventListener("submit", async (event) => {
         body: new FormData(roomForm)
     });
     const result = await response.json();
-    if (result.room) {
+    if (result.room_name) {
         leaveNcLear()
-        socket.emit("join", { "room": `${roomForm.name.value}`, "password": roomForm.password.value ? roomForm.password.value : "" });
+        socket.emit("join", { "room": `${result.room_id}`, "password": roomForm.password.value ? roomForm.password.value : "" });
         roomName.textContent = roomForm.name.value;
         roomCreatorDiv.style.display = "none";
         getMyRooms();
