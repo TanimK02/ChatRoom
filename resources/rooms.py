@@ -5,9 +5,8 @@ from flask_login import login_required, current_user
 from socket_handler import socketio
 from schemas import RoomForm, RoomsReturnSchema
 from db import db
-from flask import request, current_app, render_template, url_for, redirect, session
+from flask import request, current_app, session
 from flask_smorest import Blueprint, abort
-from flask import flash
 
 room_blp = Blueprint("Rooms", "rooms", description = "Operations on rooms")
 
@@ -87,9 +86,14 @@ def deleteRoom(id):
         abort(400, message="Room doesn't exist.")
     if room.roles["Owner"] == session.get('_user_id'):
         try:
-            socketio.close_room(room.name)
+            socketio.emit("channels_update", [], to=room.id)
+            for channel in room.channels.all():
+                socketio.close_room(channel.id)
+            socketio.close_room(room.id)
             db.session.delete(room)
             db.session.commit()
             return {"Status": "Success"}, 200
         except SQLAlchemyError:
+            current_app.logger.info("here")
             abort(400, message="Something went wrong while deleting the room.")
+            

@@ -2,9 +2,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from models import RoomModel, ChannelModel, user_rooms
 from flask_login import login_required
 from socket_handler import socketio
-from schemas import CreateChannelSchema, EditChannelSchema
+from schemas import CreateChannelSchema, EditChannelSchema, DeleteChannelSchema
 from db import db
-from flask import session, current_app
+from flask import session
 from flask_smorest import Blueprint, abort
 from flask import flash
 
@@ -34,18 +34,21 @@ def create_channel(data):
 
 @channel_blp.route("/delete_channel/" , methods=["DELETE"])
 @login_required
-@channel_blp.arguments(CreateChannelSchema)
+@channel_blp.arguments(DeleteChannelSchema)
 def delete_channel(data):
-    room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data["room"])).scalar_one_or_none
+    room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data["room"])).scalar_one_or_none()
     user = session.get('_user_id')
     roles = room.roles
     if room and (user in roles["Owner"] or user in roles["Admins"]):
-        channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.name==data["name"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none
+        if len(room.channels.all()) == 1:
+            abort(400, message="Can't delete last channel")
+        channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
         if channel:
             try:
                 db.session.delete(channel)
                 db.session.commit()
                 socketio.close_room(channel.id)
+                socketio.emit("channels_update", CreateChannelSchema(many=True).dump(room.channels.all()), to=room.id)
                 return {"message": "delete successful"}, 200
             except SQLAlchemyError:
                 abort(400, message="Something went wrong deleting the channel.")
@@ -59,20 +62,17 @@ def delete_channel(data):
 @login_required
 @channel_blp.arguments(EditChannelSchema)
 def edit_channel(data):
-    room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data["room"])).scalar_one_or_none
+    room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data["room"])).scalar_one_or_none()
     user = session.get('_user_id')
     roles = room.roles
     if room and (user in roles["Owner"] or user in roles["Admins"]):
-        channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.name==data["name"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none
+        channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
         if channel:
             channel.name = data["new_name"]
             try:
                 db.session.add(channel)
                 db.session.commit()
-                channels = room.channels.all()
-                returnSchema = CreateChannelSchema(many=True)
-                serializedData = returnSchema.dump(channels)
-                socketio.emit("channels_update", serializedData, to=channel.id)
+                socketio.emit("channels_update", CreateChannelSchema(many=True).dump(room.channels.all()), to=room.id)
                 return {"message": "edit successful"}, 200 
             except SQLAlchemyError:
                 abort(400, message="Something went wrong editing the channel.")

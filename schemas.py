@@ -1,7 +1,6 @@
 from marshmallow import Schema, fields, post_dump
 from flask_wtf import FlaskForm
 from wtforms import StringField, validators
-from wtforms.validators import DataRequired
 
 class UserForm(FlaskForm):
     username = StringField("username", [validators.Length(min=6, max=20, message="Username is a little too long there bud. 6-20 characters."), validators.InputRequired()], render_kw={"autocorrect": "off", "autocapitalize": "off", "autocomplete": "off", "placeholder": "username"})
@@ -32,7 +31,11 @@ class CreateChannelSchema(Schema):
     name = fields.Str(required=True)
     room = fields.Str(required=True)
 
+class DeleteChannelSchema(Schema):
+    channel_id = fields.Str(required=True)
+    room = fields.Str(required=True)
+
 class EditChannelSchema(Schema):
     new_name = fields.Str(required=True)
-    name = fields.Str(required=True)
+    channel_id = fields.Str(required=True)
     room = fields.Str(required=True)

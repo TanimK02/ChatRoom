@@ -62,15 +62,23 @@
         <div class="chat-container">
             <div class="channels-container">
             <div class="ced" id="ced">
-                <button id="create-ch">Create ch.</button>
-                <button id="edit-ch">Delete/edit ch.</button>
+                <button disabled id="create-ch">Create ch.</button>
+                <button disabled id="edit-ch">Delete/edit ch.</button>
             </div>
             <div id="add-channel" class="add-channel">
-                <h2>Add Channel</h2>
+                <div class="add-channel-h"><h2>Add Channel</h2><button>X</button></div>
                 <div>
                 <input placeholder="Channel Name">
-                <button>Add</button>
+                <button id="channel-add-btn">Add</button>
                 </div>
+            </div>
+            <div class="ed-channel" id="ed-channel">
+                <h1>GENERAL</h1> <button class="ed-x">x</button>
+                <div class="name-edit-div">
+                <input type="text" id="new-name">
+                <button id="ch-name-btn">Change Name</button>
+                </div>
+                <button id="ch-delete-btn">Delete Channel</button>
             </div>
             <ul id="channels-list"></ul>
             <ul id="msg-list"></ul>

@@ -5,8 +5,8 @@ from schemas import UserForm, LoginForm, RoomForm
 from flask_login import login_user, login_required, logout_user
 from flask_socketio import disconnect
 from db import db
-from flask import request, current_app, render_template, url_for, redirect
-from flask_smorest import Blueprint, abort
+from flask import request, render_template, url_for, redirect
+from flask_smorest import Blueprint
 from flask import flash
 import re
 import bcrypt

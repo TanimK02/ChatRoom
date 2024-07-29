@@ -2,7 +2,6 @@ from flask import Flask, request, redirect, url_for
 from flask_cors import CORS
 from flask_login import LoginManager
 from flask_smorest import Api, abort
-from flask_migrate import Migrate
 from sqlalchemy.exc import SQLAlchemyError
 from db import db
 from models import UserModel

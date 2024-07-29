@@ -26,6 +26,8 @@ const myRmsXbtn = document.getElementById("my-rooms-x-button");
 const channelList = document.getElementById("channels-list");
 const channelAdd = document.getElementById("add-channel");
 const createChBtn = document.getElementById("create-ch");
+const edChBtn = document.getElementById("edit-ch");
+const edChDiv = document.getElementById("ed-channel");
 const socket = io();
 let server = "";
 let roomId = "";
@@ -34,6 +36,16 @@ let admin = false;
 // Utility Functions
 const clearMsg = () => {
     msgList.innerHTML = "";
+};
+
+const leaveRC = () => {
+    socket.emit('leave', { "room": server });
+    socket.emit('leave', { "room": roomId });
+};
+
+const leaveNcLear = () => {
+    leaveRC()
+    clearMsg()
 };
 
 const sendMessage = () => {
@@ -55,17 +67,16 @@ const loadInRooms = (result) => {
             joinerDiv.display = "none";
             joinerDiv.innerHTML = `
                 <p><button id="join-x">X</button></p>
-                <h2>${room.name}</h2>
+                <h2></h2>
                 ${room.password ? `<input name="password" id="password" type="text" placeholder="password"/>` : ""}
                 <input type="button" id="join-submit" value="join"/>`;
+            joinerDiv.querySelector("h2").textContent = room.name;
             joinerDiv.querySelector("#join-x").addEventListener("click", () => {
                 joinerDiv.style.display = "none";
                 joinerDiv.innerHTML = "";
             });
             joinerDiv.querySelector("#join-submit").addEventListener("click", () => {
-                socket.emit('leave', { "room": server });
-                socket.emit('leave', { "room": roomId });
-                clearMsg();
+                leaveNcLear()
                 socket.emit("join", {
                     "room": `${room.name}`,
                     "password": joinerDiv.querySelector("#password") ? (joinerDiv.querySelector("#password").value ? joinerDiv.querySelector("#password").value : "") : ""
@@ -103,17 +114,16 @@ const loadMyRooms = (result) => {
             joinerDiv.display = "none";
             joinerDiv.innerHTML = `
                 <p><button id="join-x">X</button></p>
-                <h2>${room.name}</h2>
+                <h2></h2>
                 <input type="button" id="join-submit" value="join"/>
                 <input type="button" id="room-delete" value="delete" />`;
+            joinerDiv.querySelector("h2").textContent = room.name;
             joinerDiv.querySelector("#join-x").addEventListener("click", () => {
                 joinerDiv.style.display = "none";
                 joinerDiv.innerHTML = "";
             });
             joinerDiv.querySelector("#join-submit").addEventListener("click", () => {
-                socket.emit('leave', { "room": server });
-                socket.emit('leave', { "room": roomId });
-                clearMsg();
+                leaveNcLear()
                 socket.emit("join", {
                     "room": `${room.name}`,
                 });
@@ -168,6 +178,7 @@ const loadChannels = (result) => {
                 "room": `${roomName.textContent}`,
                 "channel_id": `${channel.id}`
             });
+            edChDiv.querySelector("h1").textContent = channel.name.toUpperCase();
         })
     } )
 };
@@ -230,7 +241,9 @@ socket.on('join', (data) => {
         joinerDiv.style.display = 'none';
         server = data["channel_id"];
         roomId = data["room_id"];
-        console.log(roomId);
+        admin = data["admin"];
+        createChBtn.disabled = admin? false : true;
+        edChBtn.disabled = admin? false : true;
         getChannels();
     } else {
         roomName.textContent = "Join A Room";
@@ -309,9 +322,7 @@ roomForm.addEventListener("submit", async (event) => {
     });
     const result = await response.json();
     if (result.room) {
-        socket.emit('leave', { "room": server });
-        socket.emit('leave', { "room": roomId });
-        clearMsg();
+        leaveNcLear()
         socket.emit("join", { "room": `${roomForm.name.value}`, "password": roomForm.password.value ? roomForm.password.value : "" });
         roomName.textContent = roomForm.name.value;
         roomCreatorDiv.style.display = "none";
@@ -336,8 +347,60 @@ myRmsXbtn.addEventListener("click", () => {
     myRms.style.display = myRms.style.display == "block" ? "none" : "block";
 });
 
-channelAdd.querySelector("button").addEventListener("click", addChannel);
+channelAdd.querySelector("#channel-add-btn").addEventListener("click", addChannel);
 
 createChBtn.addEventListener("click", () => {
     channelAdd.style.display = channelAdd.style.display == "flex" ? "none" : "flex";
+})
+
+channelAdd.querySelector(".add-channel-h").querySelector("button").addEventListener("click",() => {channelAdd.style.display = "none"});
+
+edChBtn.addEventListener("click", () => {
+    edChDiv.style.display = edChDiv.style.display == "flex" ? "none" : "flex";
+})
+
+edChDiv.querySelector(".ed-x").addEventListener("click", ()=> edChDiv.style.display="none");
+
+edChDiv.querySelector("#ch-name-btn").addEventListener("click", async() => {
+    const new_name = edChDiv.querySelector("#new-name").value;
+    if (new_name !== ""){
+        try {
+            const response = await fetch("/edit_channel", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ "room": roomId, "channel_id": server, "new_name": new_name})
+            
+        });
+        if (response.ok) {
+            edChDiv.querySelector("h1").textContent = new_name.toUpperCase();
+        };
+    }
+    catch (error) {
+        console.error("400 Channel name change didn't work.");
+    };
+       
+    };
+});
+
+edChDiv.querySelector("#ch-delete-btn").addEventListener("click", async() => {
+    try {
+        const response = await fetch("/delete_channel", {
+        method: "Delete",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ "room": roomId, "channel_id": server})
+    });
+    console.log(response)
+    if (response.ok) {
+        edChDiv.style.display = "none";
+    } else {
+        alert("Can't delete if only channel.")
+    };
+}
+    catch (error) {
+        console.error("error", error);
+    };
 })

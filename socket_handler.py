@@ -1,5 +1,5 @@
 from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
-from flask import request
+from flask import request, session
 from flask_login import current_user
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
@@ -44,20 +44,31 @@ def on_join(data):
     if data.get("room", None):
         room = db.session.execute(db.select(RoomModel).where(RoomModel.name==data.get("room"))).scalar_one_or_none()
         if room:
-            if not hasattr(data, "channel"):
+            channel = ""
+            if not data.get("channel_id", None):
                 channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.room_id==room.id).where(ChannelModel.name=="general")).scalar_one_or_none()
+                if channel:
+                    channel = channel.id
+                else:
+                    channel = room.channels.all()[0].id
             else:
-                channel = data["channel"]
-            room_to_join = channel.id
+                channels = room.channels.all()
+                channel = ""
+                for i in channels:         
+                    if i.id == data["channel_id"]:
+                        channel = i.id
+                        break
+                if not channel:
+                    return
+            room_to_join = channel
             username = current_user.username
+            admin = False
+            user_id = session.get('_user_id')
+            roles = room.roles
             if room.password:
                     check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==current_user.id).where(user_rooms.c.room==room.id)).scalar()
                     if check:
-                        join_room(room_to_join)
-                        join_room(room.id)
-                        emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id}, to=request.sid)
-                        emit('message_json', {"message" : username + " joined the room"}, to=room_to_join)
-                        return 
+                        pass
                     elif room.password == data.get("password", None):
                         room.people += 1
                         try:
@@ -70,9 +81,13 @@ def on_join(data):
                         return emit('join', False, to=request.sid)
                     join_room(room_to_join)
                     join_room(room.id)
-                    emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id}, to=request.sid)
-                    emit('message_json', {"message" : username + " joined the room"}, to=room_to_join)
+                    if user_id in roles["Owner"] or user_id in roles["Admins"]:
+                        admin = True
+                    emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
+                    emit('message_json', {"message" : username + " joined the channel"}, to=room_to_join)
                     return
+            if user_id in roles["Owner"] or user_id in roles["Admins"]:
+                admin = True
             join_room(room_to_join)
             join_room(room.id)
             room.people += 1
@@ -81,8 +96,8 @@ def on_join(data):
                 db.session.commit()
             except SQLAlchemyError:
                 return emit('join', False, to=request.sid)
-            emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id}, to=request.sid)
-            emit('message_json', {"message" : username + " joined the room"}, to=room_to_join)
+            emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
+            emit('message_json', {"message" : username + " joined the channel"}, to=room_to_join)
         else:
             return emit('join', False, to=request.sid)
     else:
@@ -93,7 +108,7 @@ def on_leave(data):
     room = data['room']
     if room in rooms(request.sid):
         leave_room(room)
-        emit('message_json', {"message" : current_user.username + " left the room"}, to=room)
+        emit('message_json', {"message" : current_user.username + " left the channel"}, to=room)
 
 
 @socketio.on('connect')
