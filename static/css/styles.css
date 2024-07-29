@@ -186,7 +186,7 @@ main {
     border: 5px solid black;
 }
 
-@media (max-width: 1450px) {
+@media (max-width: 500px) {
     .room-div {
         left: 0%;
     }
@@ -225,7 +225,7 @@ main {
     border: 5px solid black;
 }
 
-@media (max-width: 1450px) {
+@media (max-width: 500px) {
     .rooms-container {
         left: 0%;
     }
@@ -248,7 +248,7 @@ main {
     z-index: 150;
 }
 
-@media (max-width: 1450px) {
+@media (max-width: 500px) {
     #room-creator-div {
         left: 0%;
     }
@@ -262,7 +262,7 @@ main {
     border: 5px solid black;
 }
 
-@media (max-width: 1450px) {
+@media (max-width: 500px) {
     #room-creator-div form {
         width: 200px;
     }
@@ -314,7 +314,7 @@ main {
 }
 
 
-@media (max-width: 1450px) {
+@media (max-width: 500px) {
     .joiner-div {
         width: 200px;
     }
@@ -484,4 +484,9 @@ main {
     align-items: center;
     justify-content: center;
     gap: 20px;
+}
+
+#password {
+    width: 250px;
+    text-align: center;
 }

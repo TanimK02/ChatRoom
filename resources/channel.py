@@ -4,6 +4,7 @@ from flask_login import login_required
 from socket_handler import socketio
 from schemas import CreateChannelSchema, EditChannelSchema, DeleteChannelSchema
 from db import db
+from sqlalchemy import func
 from flask import session
 from flask_smorest import Blueprint, abort
 from flask import flash
@@ -40,7 +41,7 @@ def delete_channel(data):
     user = session.get('_user_id')
     roles = room.roles
     if room and (user in roles["Owner"] or user in roles["Admins"]):
-        if len(room.channels.all()) == 1:
+        if room.channels.count() == 1:
             abort(400, message="Can't delete last channel")
         channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
         if channel:

@@ -1,26 +1,36 @@
 from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
-from flask import request, session
+from flask import request, session, current_app
 from flask_login import current_user
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
-from models import RoomModel, user_rooms, ChannelModel
+from models import RoomModel, user_rooms, ChannelModel, MessageModel
 socketio = SocketIO()
 
 @socketio.on('message_json')
 def handle_message(data):
     if not isinstance(data, dict):
         return False
-    if data["room"] in rooms(request.sid):
+    if data["channel"] in rooms(request.sid):
         if data["message"] == "":
             return
-        room = data['room']
+        channel = data['channel']
         message = data['message']
         if data.get("img", None):
             img = data['img']
         else:
             img = None
         emit('message_json', {"message" : current_user.username + ": " + message,
-                            "img": img}, to=room)
+                            "img": img}, to=channel)
+        
+        messageStore = MessageModel(text=message, channel_id=channel)
+        channelStore = db.session.get(ChannelModel, channel)
+        if channelStore:
+            try:
+                channelStore.messages.append(messageStore)
+                db.session.add(channelStore)
+                db.session.commit()
+            except SQLAlchemyError:
+                current_app.logger.info("didn't store message")
     else:
         emit('message_json', {"message" : "not in room"}, to=request.sid)
  
@@ -42,7 +52,7 @@ def on_join(data):
     if not isinstance(data, dict):
         return False
     if data.get("room", None):
-        room = db.session.execute(db.select(RoomModel).where(RoomModel.name==data.get("room"))).scalar_one_or_none()
+        room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data.get("room"))).scalar_one_or_none()
         if room:
             channel = ""
             if not data.get("channel_id", None):
@@ -66,7 +76,7 @@ def on_join(data):
             user_id = session.get('_user_id')
             roles = room.roles
             if room.password:
-                    check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==current_user.id).where(user_rooms.c.room==room.id)).scalar()
+                    check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==session.get('_user_id')).where(user_rooms.c.room==room.id)).scalar()
                     if check:
                         pass
                     elif room.password == data.get("password", None):
@@ -83,7 +93,7 @@ def on_join(data):
                     join_room(room.id)
                     if user_id in roles["Owner"] or user_id in roles["Admins"]:
                         admin = True
-                    emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
+                    emit('join', {"room": room.name, "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
                     emit('message_json', {"message" : username + " joined the channel"}, to=room_to_join)
                     return
             if user_id in roles["Owner"] or user_id in roles["Admins"]:
@@ -96,7 +106,7 @@ def on_join(data):
                 db.session.commit()
             except SQLAlchemyError:
                 return emit('join', False, to=request.sid)
-            emit('join', {"room": data["room"], "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
+            emit('join', {"room": room.name, "channel_id": room_to_join, "room_id": room.id, "admin": admin}, to=request.sid)
             emit('message_json', {"message" : username + " joined the channel"}, to=room_to_join)
         else:
             return emit('join', False, to=request.sid)

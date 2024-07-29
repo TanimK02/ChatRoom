@@ -50,7 +50,7 @@ const leaveNcLear = () => {
 
 const sendMessage = () => {
     if (messageInput.value !== "") {
-        socket.emit("message_json", { "message": messageInput.value, "room": server });
+        socket.emit("message_json", { "message": messageInput.value, "channel": server });
         messageInput.value = "";
     }
 };
@@ -78,7 +78,7 @@ const loadInRooms = (result) => {
             joinerDiv.querySelector("#join-submit").addEventListener("click", () => {
                 leaveNcLear()
                 socket.emit("join", {
-                    "room": `${room.name}`,
+                    "room": `${room.id}`,
                     "password": joinerDiv.querySelector("#password") ? (joinerDiv.querySelector("#password").value ? joinerDiv.querySelector("#password").value : "") : ""
                 });
             });
@@ -125,7 +125,7 @@ const loadMyRooms = (result) => {
             joinerDiv.querySelector("#join-submit").addEventListener("click", () => {
                 leaveNcLear()
                 socket.emit("join", {
-                    "room": `${room.name}`,
+                    "room": `${room.id}`,
                 });
             });
             joinerDiv.querySelector("#room-delete").addEventListener("click", async() => {
