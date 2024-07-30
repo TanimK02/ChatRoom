@@ -44,8 +44,11 @@ const leaveRC = () => {
 };
 
 const leaveNcLear = () => {
-    leaveRC()
-    clearMsg()
+    leaveRC();
+    clearMsg();
+    channelList.innerHTML = "";
+    createChBtn.disabled = true;
+    edChBtn.disabled = true;
 };
 
 const sendMessage = () => {
@@ -129,6 +132,7 @@ const loadMyRooms = (result) => {
                 });
             });
             joinerDiv.querySelector("#room-delete").addEventListener("click", async() => {
+                leaveNcLear()
                 try{
                     const response = await fetch(`/delete_room/${room.id}`);
                     if (response.ok) {
@@ -238,6 +242,7 @@ socket.on("message_json", (data) => {
 
 socket.on('join', (data) => {
     if (data["room"]) {
+        console.log(data["room_id"])
         roomName.textContent = data["room"];
         joinerDiv.style.display = 'none';
         server = data["channel_id"];

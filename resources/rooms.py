@@ -2,7 +2,7 @@ from flask.views import MethodView
 from sqlalchemy.exc import SQLAlchemyError
 from models import RoomModel, ChannelModel
 from flask_login import login_required, current_user
-from socket_handler import socketio
+from socket_handler import socketio, leave_room
 from schemas import RoomForm, RoomsReturnSchema
 from db import db
 from flask import request, current_app, session
@@ -76,6 +76,7 @@ def myRooms():
         abort(400, message="Something went wrong getting your rooms.")
 
 
+#implement leave room
 @room_blp.route("/delete_room/<string:id>")
 @login_required
 def deleteRoom(id):
@@ -97,9 +98,12 @@ def deleteRoom(id):
             current_app.logger.info("here")
             abort(400, message="Something went wrong while deleting the room.")
     else:
-        room.remove(current_user)
+        user = current_user
+        room.users.remove(user)
+        room.people -= 1
         try:
             db.session.commit()
+            return {"Status": "left room successfully"}, 200
         except SQLAlchemyError:
             abort(400, message="Something went wrong from leaving the room")
             

@@ -486,7 +486,7 @@ main {
     gap: 20px;
 }
 
-#password {
+#joiner-div #password {
     width: 250px;
     text-align: center;
 }

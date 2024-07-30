@@ -19,18 +19,16 @@ def handle_message(data):
             img = data['img']
         else:
             img = None
-        emit('message_json', {"message" : current_user.username + ": " + message,
+        user = current_user.username
+        emit('message_json', {"message" : user + ": " + message,
                             "img": img}, to=channel)
         
-        messageStore = MessageModel(text=message, channel_id=channel)
-        channelStore = db.session.get(ChannelModel, channel)
-        if channelStore:
-            try:
-                channelStore.messages.append(messageStore)
-                db.session.add(channelStore)
-                db.session.commit()
-            except SQLAlchemyError:
-                current_app.logger.info("didn't store message")
+        messageStore = MessageModel(text=message, channel_id=channel, username=user)
+        try:
+            db.session.add(messageStore)
+            db.session.commit()
+        except SQLAlchemyError:
+            current_app.logger.info("didn't store message")
     else:
         emit('message_json', {"message" : "not in room"}, to=request.sid)
  
@@ -104,11 +102,12 @@ def on_join(data):
     else:
         return emit('join', False, to=request.sid)
 
+#gotta fix the leaving issues from the room resource
 @socketio.on('leave')
 def on_leave(data):
     room = data['room']
     if room in rooms(request.sid):
-        leave_room(room)
+        leave_room(room, sid=request.sid)
         emit('message_json', {"message" : current_user.username + " left the channel"}, to=room)
 
 
