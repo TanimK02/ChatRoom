@@ -32,10 +32,14 @@ const socket = io();
 let server = "";
 let roomId = "";
 let admin = false;
+let chatPage = 1;
+let canScroll = true;
 
 // Utility Functions
 const clearMsg = () => {
     msgList.innerHTML = "";
+    chatPage = 1;
+    canScroll = true;
 };
 
 const leaveRC = () => {
@@ -53,7 +57,7 @@ const leaveNcLear = () => {
 
 const sendMessage = () => {
     if (messageInput.value !== "") {
-        socket.emit("message_json", { "message": messageInput.value, "channel": server });
+        socket.emit("message", { "message": messageInput.value, "channel": server });
         messageInput.value = "";
     }
 };
@@ -93,7 +97,6 @@ const loadInRooms = (result) => {
 
 const pageRooms = async (number) => {
     const response = await fetch(`/rooms/${number}`);
-    console.log(`/rooms/${number}`);
     const result = await response.json();
     if (result.length == 0) {
         next.disabled = true;
@@ -168,14 +171,12 @@ const getMyRooms = async () => {
 
 const loadChannels = (result) => {
     channelList.innerHTML = "";
-    console.log(result);
     result.forEach((channel) => {
         const li = document.createElement("li");
         const el = document.createElement("button");
         el.textContent = `${channel.name.toUpperCase()}`;
         li.appendChild(el);
         channelList.appendChild(li);
-        console.log(channel)
         el.addEventListener("click", () => {
             socket.emit('leave', { "room": server });
             clearMsg();
@@ -205,18 +206,15 @@ try {
         body: JSON.stringify({ "room": roomId, "name": name })
     });
 
-    // Check if the response status is not OK (200-299)
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Optionally, you can handle the response data if needed
     const data = await response.json();
-    console.log(data); // Handle the data as needed
 
 } catch (error) {
     console.error('Fetch error:', error);
-    createChBtn.disabled = true; // Handle the error by disabling the button
+    createChBtn.disabled = true;
     channelAdd.style.display = "none";
 }
 
@@ -227,8 +225,31 @@ socket.on('connect', () => {
     console.log("connected");
 });
 
-socket.on("message_json", (data) => {
-    console.log("received");
+socket.on("load_prev", (data) => {
+    if (data.length == 0) {
+        canScroll = false;
+        return;
+    };
+    let first;
+    data.forEach(messageData => {
+        const msg = document.createElement("li");
+        if (!first) {
+            first = msg;
+        };
+        if (data.img) {
+            const img = document.createElement("img");
+            img.src = data.img;
+            msg.appendChildChild(img);
+        }
+        msg.textContent = messageData["username"] + ": " + messageData["text"];
+        msgList.prepend(msg);
+        });
+        first.scrollIntoView({ behavior: 'smooth', block: 'end'})
+    }
+    
+    );
+
+socket.on("message", (data) => {
     const msg = document.createElement("li");
     if (data.img) {
         const img = document.createElement("img");
@@ -242,7 +263,6 @@ socket.on("message_json", (data) => {
 
 socket.on('join', (data) => {
     if (data["room"]) {
-        console.log(data["room_id"])
         roomName.textContent = data["room"];
         joinerDiv.style.display = 'none';
         server = data["channel_id"];
@@ -399,7 +419,6 @@ edChDiv.querySelector("#ch-delete-btn").addEventListener("click", async() => {
         },
         body: JSON.stringify({ "room": roomId, "channel_id": server})
     });
-    console.log(response)
     if (response.ok) {
         edChDiv.style.display = "none";
     } else {
@@ -410,3 +429,10 @@ edChDiv.querySelector("#ch-delete-btn").addEventListener("click", async() => {
         console.error("error", error);
     };
 })
+
+msgList.addEventListener("scroll", () => {
+    if (msgList.scrollTop <= 0 && canScroll) {
+        socket.emit("load_prev", {"page": chatPage, "channel_id": server});
+        chatPage += 1;
+    };;
+});

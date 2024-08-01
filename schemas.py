@@ -44,3 +44,7 @@ class EditChannelSchema(Schema):
     new_name = fields.Str(required=True)
     channel_id = fields.Str(required=True)
     room = fields.Str(required=True)
+
+class ReturnMessageSchema(Schema):
+    text = fields.Str()
+    username = fields.Str()

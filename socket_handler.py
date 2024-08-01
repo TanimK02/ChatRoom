@@ -4,9 +4,10 @@ from flask_login import current_user
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
 from models import RoomModel, user_rooms, ChannelModel, MessageModel
+from schemas import ReturnMessageSchema
 socketio = SocketIO()
 
-@socketio.on('message_json')
+@socketio.on('message')
 def handle_message(data):
     if not isinstance(data, dict):
         return False
@@ -20,9 +21,8 @@ def handle_message(data):
         else:
             img = None
         user = current_user.username
-        emit('message_json', {"message" : user + ": " + message,
+        emit('message', {"message" : user + ": " + message,
                             "img": img}, to=channel)
-        
         messageStore = MessageModel(text=message, channel_id=channel, username=user)
         try:
             db.session.add(messageStore)
@@ -30,9 +30,34 @@ def handle_message(data):
         except SQLAlchemyError:
             current_app.logger.info("didn't store message")
     else:
-        emit('message_json', {"message" : "not in room"}, to=request.sid)
+        emit('message', {"message" : "not in room"}, to=request.sid)
  
+@socketio.on("load_prev")
+def prev_messages(data):
+    if not isinstance(data, dict):
+        return False
+    if data.get("page", None) and data.get("channel_id", None):
+        if not isinstance(data["page"], int) and not isinstance(data["channel_id"], str):
+            return
+        if data["channel_id"] not in rooms(request.sid):
+            return
+        page = data["page"]
+        if page < 1:
+            page = 1
 
+        offset_value = (page * 30)
+        try:
+            messages = db.session.execute(
+                db.select(MessageModel)
+                .where(MessageModel.channel_id == data["channel_id"])
+                .limit(30)
+                .offset(offset_value)
+                .order_by(MessageModel.id.desc())
+            ).scalars()
+            emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
+        except SQLAlchemyError:
+            return
+        
 @socketio.on("channels_update")
 def update_channels(data):
     if not isinstance(data, dict):
@@ -84,11 +109,15 @@ def on_join(data):
                             return emit('join', False, to=request.sid)
                     join_room(channel)
                     join_room(room.id)
+                    messages = db.session.execute(db.select(MessageModel).where(MessageModel.channel_id==channel).limit(30).offset(0).order_by(MessageModel.id.desc())).scalars()
+                    emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
                     emit('join', {"room": room.name, "channel_id": channel, "room_id": room.id, "admin": admin}, to=request.sid)
                     emit('message_json', {"message" : username + " joined the channel"}, to=channel)
                     return
             join_room(channel)
             join_room(room.id)
+            messages = db.session.execute(db.select(MessageModel).where(MessageModel.channel_id==channel).limit(30).offset(0).order_by(MessageModel.id.desc())).scalars()
+            emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
             room.people += 1
             try:
                 db.session.add(room)
