@@ -26,6 +26,7 @@
                 </div>
             </div>
             <button id="MR-button">My Rooms</button>
+            <a href="/logout"><button id="Log Out">Log Out</button></a>
         </header>
 
         <!-- Rooms Container -->
@@ -84,6 +85,7 @@
             <ul id="msg-list"></ul>
             </div>
             <div class="message-container">
+                <button class="mobile-ch" id="mobile-ch">Channels</button>
                 <input id="message" type="text"/>
                 <button id="send-btn">
                     <img src="{{ url_for('static', filename='images/send.png') }}" alt="Send"/>

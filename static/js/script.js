@@ -28,6 +28,7 @@ const channelAdd = document.getElementById("add-channel");
 const createChBtn = document.getElementById("create-ch");
 const edChBtn = document.getElementById("edit-ch");
 const edChDiv = document.getElementById("ed-channel");
+const mobileCh = document.getElementById("mobile-ch");
 const socket = io();
 let server = "";
 let roomId = "";
@@ -181,10 +182,11 @@ const loadChannels = (result) => {
             socket.emit('leave', { "room": server });
             clearMsg();
             socket.emit("join", {
-                "room": `${channel.room_id}`,
+                "room": `${channel.room_id ? channel.room_id : roomId}`,
                 "channel_id": `${channel.id}`
             });
             edChDiv.querySelector("h1").textContent = channel.name.toUpperCase();
+            console.log(channel);
         })
     } )
 };
@@ -219,6 +221,31 @@ try {
 }
 
 }
+
+const openMChannels = () => {
+    if (channelList.querySelectorAll(".close").length == 0){
+    const close = document.createElement("button");
+    close.textContent = "Close Window";
+    close.style.backgroundColor = "red";
+    close.style.color = "white";
+    close.classList.add("close");
+    close.addEventListener("click", () => {
+        channelList.style.display = "none";
+    });
+    channelList.prepend(close);
+    close.style.height = "50px";
+    close.style.width = "100%";};
+    channelList.style.display = "flex";
+    channelList.style.flexDirection = "column";
+    channelList.style.alignItems = "center";
+    channelList.style.position = "absolute";
+    channelList.style.top = "0";
+    channelList.style.left = "0";
+    channelList.style.zIndex = "999";
+    channelList.style.width = "100%";
+    channelList.style.height = "100%";
+
+};
 
 // Socket Event Handlers
 socket.on('connect', () => {
@@ -271,6 +298,9 @@ socket.on('join', (data) => {
         createChBtn.disabled = admin? false : true;
         edChBtn.disabled = admin? false : true;
         getChannels();
+        if (channelList.querySelector(".close")) {
+            channelList.style.display = "none";
+        }
     } else {
         roomName.textContent = "Join A Room";
         joinerDiv.querySelectorAll(".errors").forEach(el => el.remove());
@@ -278,6 +308,7 @@ socket.on('join', (data) => {
         error.textContent = "Failed to join room";
         error.classList.add("errors");
         joinerDiv.querySelector("h2").insertAdjacentElement("afterend", error);
+        channelList.innerHTML = "";
     }
 });
 
@@ -436,3 +467,10 @@ msgList.addEventListener("scroll", () => {
         chatPage += 1;
     };;
 });
+
+mobileCh.addEventListener("click", ( () => {
+    if (roomId) {
+        openMChannels()
+    };
+}
+));

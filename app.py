@@ -10,8 +10,7 @@ from resources.user import user_blp
 from resources.rooms import room_blp
 from resources.channel import channel_blp
 import logging
-import sys
-import os
+from datetime import timedelta
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +22,7 @@ def create_app():
     app.config['WTF_CSRF_ENABLED'] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///../example.db'
     app.config['SECRET_KEY'] = "12dsfaa"
+    app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=1)
     CORS(app)
     login_manager = LoginManager()
     login_manager.init_app(app)

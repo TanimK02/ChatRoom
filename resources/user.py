@@ -2,10 +2,10 @@ from flask.views import MethodView
 from sqlalchemy.exc import SQLAlchemyError
 from models import UserModel
 from schemas import UserForm, LoginForm, RoomForm
-from flask_login import login_user, login_required, logout_user
-from flask_socketio import disconnect
+from flask_login import login_user, login_required, logout_user, current_user
+from flask_socketio import emit
 from db import db
-from flask import request, render_template, url_for, redirect
+from flask import request, render_template, url_for, redirect, session
 from flask_smorest import Blueprint
 from flask import flash
 import re
@@ -17,6 +17,8 @@ user_blp = Blueprint("Users", "users", description="operations on users")
 @user_blp.route("/login")
 class HomeOrLogin(MethodView):
     def get(self):
+        if current_user.is_authenticated:
+            return redirect(url_for("Users.home"))
         return render_template("index.html", form = LoginForm())
     
     def post(self):
@@ -25,7 +27,7 @@ class HomeOrLogin(MethodView):
             
             user = db.session.execute(db.select(UserModel).where(UserModel.username==form.username.data)).scalar_one_or_none()
             if user and bcrypt.checkpw(form.password.data.encode('utf-8'), user.password):
-                login_user(user)
+                login_user(user, remember=True)
                 return redirect(url_for("Users.home"))
             else:
                 flash("Username or password is wrong/doesn't exist.")
@@ -74,6 +76,4 @@ class LogOut(MethodView):
     @login_required
     def get(self):
         logout_user()
-        disconnect()
         return redirect(url_for("Users.HomeOrLogin"))
-    
