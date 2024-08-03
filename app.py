@@ -10,6 +10,7 @@ from resources.user import user_blp
 from resources.rooms import room_blp
 from resources.channel import channel_blp
 import logging
+import redis
 from datetime import timedelta
 
 def create_app():
@@ -44,10 +45,14 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()
+
+    app.r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+    
     api = Api(app)
     api.register_blueprint(user_blp)
     api.register_blueprint(room_blp)
     api.register_blueprint(channel_blp)
+
     # logger = logging.getLogger('sqlalchemy')
     # logger.setLevel(logging.DEBUG)
     # console_handler = logging.StreamHandler(sys.stdout)

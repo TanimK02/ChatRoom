@@ -7,6 +7,7 @@ from schemas import RoomForm, RoomsReturnSchema
 from db import db
 from flask import request, current_app, session
 from flask_smorest import Blueprint, abort
+from flask_socketio import rooms, leave_room
 
 room_blp = Blueprint("Rooms", "rooms", description = "Operations on rooms")
 
@@ -102,6 +103,9 @@ def deleteRoom(id):
         room.users.remove(user)
         room.people -= 1
         try:
+            sid = current_app.r.hget(session.get('_user_id'), "sid")
+            for room in rooms(sid, namespace="/"):
+                leave_room(room=room, sid=sid, namespace="/")
             db.session.commit()
             return {"Status": "left room successfully"}, 200
         except SQLAlchemyError:

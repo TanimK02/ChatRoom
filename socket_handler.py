@@ -7,6 +7,9 @@ from models import RoomModel, user_rooms, ChannelModel, MessageModel
 from schemas import ReturnMessageSchema
 socketio = SocketIO()
 
+def return_username():
+   return current_app.r.hget(session.get('_user_id'), "username") if current_app.r.hget(session.get('_user_id'), "username") else current_user.username
+
 @socketio.on('message')
 def handle_message(data):
     if not isinstance(data, dict):
@@ -20,7 +23,7 @@ def handle_message(data):
             img = data['img']
         else:
             img = None
-        user = current_user.username
+        user = return_username()
         emit('message', {"message" : user + ": " + message,
                             "img": img}, to=channel)
         messageStore = MessageModel(text=message, channel_id=channel, username=user)
@@ -88,14 +91,16 @@ def on_join(data):
                 channel = db.session.execute(db.select(ChannelModel.id).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
                 if not channel:
                     return
-            username = current_user.username
+            username = return_username()
             admin = False
             user_id = session.get('_user_id')
             roles = room.roles
             if user_id in roles["Owner"] or user_id in roles["Admins"]:
                 admin = True
             if room.password:
-                    check = db.session.execute(db.select(user_rooms).where(user_rooms.c.user==session.get('_user_id')).where(user_rooms.c.room==room.id)).scalar_one_or_none()
+                    check = db.session.execute(db.select(user_rooms).
+                                               where(user_rooms.c.user==session.get('_user_id')).
+                                               where(user_rooms.c.room==room.id)).scalar_one_or_none()
                     if not check:
                         if room.password == data.get("password", None):
                             room.people += 1
@@ -109,14 +114,20 @@ def on_join(data):
                             return emit('join', False, to=request.sid)
                     join_room(channel)
                     join_room(room.id)
-                    messages = db.session.execute(db.select(MessageModel).where(MessageModel.channel_id==channel).limit(30).offset(0).order_by(MessageModel.id.desc())).scalars()
+                    messages = db.session.execute(db.select(MessageModel).
+                                                  where(MessageModel.channel_id==channel).
+                                                  limit(30).
+                                                  offset(0).
+                                                  order_by(MessageModel.id.desc())).scalars()
                     emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
                     emit('join', {"room": room.name, "channel_id": channel, "room_id": room.id, "admin": admin}, to=request.sid)
                     emit('message_json', {"message" : username + " joined the channel"}, to=channel)
                     return
             join_room(channel)
             join_room(room.id)
-            messages = db.session.execute(db.select(MessageModel).where(MessageModel.channel_id==channel).limit(30).offset(0).order_by(MessageModel.id.desc())).scalars()
+            messages = db.session.execute(db.select(MessageModel).
+                                          where(MessageModel.channel_id==channel).limit(30).
+                                          offset(0).order_by(MessageModel.id.desc())).scalars()
             emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
             room.people += 1
             try:
@@ -131,17 +142,20 @@ def on_join(data):
     else:
         return emit('join', False, to=request.sid)
 
-#gotta fix the leaving issues from the room resource
 @socketio.on('leave')
 def on_leave(data):
     room = data['room']
     if room in rooms(request.sid):
         leave_room(room, sid=request.sid)
-        emit('message_json', {"message" : current_user.username + " left the channel"}, to=room)
-
+        emit('message_json', {"message" : return_username() + " left the channel"}, to=room)
 
 @socketio.on('connect')
 def connect():
     if not current_user.is_authenticated:
         return False
-    
+    if current_app.r.hget(session.get('_user_id'), "sid") != request.sid:
+        current_app.r.delete(current_user.id)
+    current_app.r.hset(current_user.id, mapping={
+        "username": current_user.username,
+        "sid": request.sid
+    })

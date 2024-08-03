@@ -3,11 +3,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from models import UserModel
 from schemas import UserForm, LoginForm, RoomForm
 from flask_login import login_user, login_required, logout_user, current_user
-from flask_socketio import emit
+from flask_socketio import emit, disconnect
 from db import db
 from flask import request, render_template, url_for, redirect, session
 from flask_smorest import Blueprint
-from flask import flash
+from flask import flash, current_app
 import re
 import bcrypt
 
@@ -75,5 +75,8 @@ class LogOut(MethodView):
 
     @login_required
     def get(self):
+        sid = current_app.r.hget(session.get('_user_id'), "sid")
+        disconnect(sid=sid, namespace="/")
+        current_app.r.delete(session.get('_user_id'))
         logout_user()
         return redirect(url_for("Users.HomeOrLogin"))
