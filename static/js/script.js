@@ -259,13 +259,17 @@ socket.on("load_prev", (data) => {
     };
     let first;
     data.forEach(messageData => {
+        try{
+            messageData = JSON.parse(messageData)}
+        catch {
+        }
         const msg = document.createElement("li");
         if (!first) {
             first = msg;
         };
-        if (data.img) {
+        if (messageData.img) {
             const img = document.createElement("img");
-            img.src = data.img;
+            img.src = messageData.img;
             msg.appendChildChild(img);
         }
         msg.textContent = messageData["username"] + ": " + messageData["text"];

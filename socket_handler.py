@@ -1,5 +1,5 @@
 from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
-from flask import request, session, current_app
+from flask import request, session, current_app, json
 from flask_login import current_user
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,6 +9,19 @@ socketio = SocketIO()
 
 def return_username():
    return current_app.r.hget(session.get('_user_id'), "username") if current_app.r.hget(session.get('_user_id'), "username") else current_user.username
+
+def prevMsgs(channel, offset):
+    if current_app.r.llen(channel) < offset:
+        messages = db.session.execute(db.select(MessageModel).
+                                    where(MessageModel.channel_id==channel).
+                                    limit(30).
+                                    offset(offset).
+                                    order_by(MessageModel.id.desc())).scalars()
+        return ReturnMessageSchema(many=True).dump(messages)
+    else:
+        if current_app.r.expiretime(channel) == -1:
+            current_app.r.expire(channel, 18000)
+        return current_app.r.lrange(channel, offset, offset + 29)
 
 @socketio.on('message')
 def handle_message(data):
@@ -27,6 +40,8 @@ def handle_message(data):
         emit('message', {"message" : user + ": " + message,
                             "img": img}, to=channel)
         messageStore = MessageModel(text=message, channel_id=channel, username=user)
+        current_app.r.ltrim(channel, 0, 59)
+        current_app.r.lpush(channel, json.dumps({"text": message, "username": user}))
         try:
             db.session.add(messageStore)
             db.session.commit()
@@ -47,8 +62,11 @@ def prev_messages(data):
         page = data["page"]
         if page < 1:
             page = 1
-
         offset_value = (page * 30)
+        if offset_value == 30 and current_app.r.llen(data['channel_id']) >= 60:
+            messages = prevMsgs(data['channel_id'], 30)
+            emit("load_prev", messages, to=request.sid)
+            return
         try:
             messages = db.session.execute(
                 db.select(MessageModel)
@@ -114,21 +132,15 @@ def on_join(data):
                             return emit('join', False, to=request.sid)
                     join_room(channel)
                     join_room(room.id)
-                    messages = db.session.execute(db.select(MessageModel).
-                                                  where(MessageModel.channel_id==channel).
-                                                  limit(30).
-                                                  offset(0).
-                                                  order_by(MessageModel.id.desc())).scalars()
-                    emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
+                    messages = prevMsgs(channel, 0)
+                    emit("load_prev", messages, to=request.sid)
                     emit('join', {"room": room.name, "channel_id": channel, "room_id": room.id, "admin": admin}, to=request.sid)
                     emit('message_json', {"message" : username + " joined the channel"}, to=channel)
                     return
             join_room(channel)
             join_room(room.id)
-            messages = db.session.execute(db.select(MessageModel).
-                                          where(MessageModel.channel_id==channel).limit(30).
-                                          offset(0).order_by(MessageModel.id.desc())).scalars()
-            emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
+            messages = prevMsgs(channel, 0)
+            emit("load_prev", messages, to=request.sid)
             room.people += 1
             try:
                 db.session.add(room)
@@ -155,7 +167,4 @@ def connect():
         return False
     if current_app.r.hget(session.get('_user_id'), "sid") != request.sid:
         current_app.r.delete(current_user.id)
-    current_app.r.hset(current_user.id, mapping={
-        "username": current_user.username,
-        "sid": request.sid
-    })
+    current_app.r.hset(session.get('_user_id'), "sid", request.sid)

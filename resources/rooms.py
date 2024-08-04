@@ -91,6 +91,7 @@ def deleteRoom(id):
             socketio.emit("channels_update", [], to=room.id)
             for channel in room.channels.all():
                 socketio.close_room(channel.id)
+                current_app.r.delete(channel.id)
             socketio.close_room(room.id)
             db.session.delete(room)
             db.session.commit()

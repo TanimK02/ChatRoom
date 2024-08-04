@@ -47,7 +47,7 @@ def create_app():
         db.create_all()
 
     app.r = redis.Redis(host='localhost', port=6379, decode_responses=True)
-    
+
     api = Api(app)
     api.register_blueprint(user_blp)
     api.register_blueprint(room_blp)

@@ -5,7 +5,7 @@ from schemas import UserForm, LoginForm, RoomForm
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_socketio import emit, disconnect
 from db import db
-from flask import request, render_template, url_for, redirect, session
+from flask import request, render_template, url_for, redirect, session, current_app
 from flask_smorest import Blueprint
 from flask import flash, current_app
 import re
@@ -28,6 +28,11 @@ class HomeOrLogin(MethodView):
             user = db.session.execute(db.select(UserModel).where(UserModel.username==form.username.data)).scalar_one_or_none()
             if user and bcrypt.checkpw(form.password.data.encode('utf-8'), user.password):
                 login_user(user, remember=True)
+                current_app.r.hset(current_user.id, mapping={
+                    "username": current_user.username,
+                    "sid": ""
+                })
+                current_app.r.expire(session.get('_user_id'), 88000)
                 return redirect(url_for("Users.home"))
             else:
                 flash("Username or password is wrong/doesn't exist.")

@@ -5,7 +5,7 @@ from socket_handler import socketio
 from schemas import CreateChannelSchema, EditChannelSchema, DeleteChannelSchema, ReturnChannelSchema
 from db import db
 from sqlalchemy import func
-from flask import session
+from flask import session, current_app
 from flask_smorest import Blueprint, abort
 from flask import flash
 
@@ -46,6 +46,7 @@ def delete_channel(data):
         channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
         if channel:
             try:
+                current_app.r.delete(channel.id)
                 db.session.delete(channel)
                 db.session.commit()
                 socketio.close_room(channel.id)
