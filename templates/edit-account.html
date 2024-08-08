@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Edit Account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&display=swap" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+    <main>
+    <div class = "ed-account">
+        <h1>Edit Account</h1> <a href="/home"><button class="ed-x">x</button></a>
+        {% if name %}
+        <h1 id="username">Username: {{name}}</h1>
+        {% endif %}
+        <ul id="alerts" class="alerts"></ul>
+        <div class="name-edit-div">
+        <input type="text" id="new-acc-name">
+        <button id="acc-name-btn">Change Name</button>
+        </div>
+        <button id="acc-delete-btn">Delete Account</button>
+        <div id="del-div" class = "delete-account">
+            <button id="del-x" class="del-x">x</button>
+            <h2>Delete Account</h2>
+            <label for="password">Enter Password:</label>
+            <input type="password" id="password" placeholder="password">
+            <button id="delete-confirm">Confirm</button>
+        </div>
+    </div>
+    </main>
+    <script src="../static/js/account-editor.js" defer></script>
+</body>
+</html>

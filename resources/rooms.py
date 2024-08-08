@@ -28,7 +28,7 @@ class RoomOps(MethodView):
                 name = form.name.data,
                 roles = {"Owner": f"{current_user.id}",
                          "Admins": []},
-                people = 0
+                people = 1
             )
             room.users.append(current_user)
             

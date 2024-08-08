@@ -48,3 +48,8 @@ class EditChannelSchema(Schema):
 class ReturnMessageSchema(Schema):
     text = fields.Str()
     username = fields.Str()
+
+class EditAccountSchema(Schema):
+    new_name = fields.Str(required=False)
+    old_pass = fields.Str(required=False)
+    new_pass = fields.Str(required=False)

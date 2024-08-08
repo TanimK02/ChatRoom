@@ -11,12 +11,18 @@ def return_username():
    return current_app.r.hget(session.get('_user_id'), "username") if current_app.r.hget(session.get('_user_id'), "username") else current_user.username
 
 def prevMsgs(channel, offset):
-    if current_app.r.llen(channel) < offset:
+    redisLen = current_app.r.llen(channel)
+    if redisLen <= offset:
         messages = db.session.execute(db.select(MessageModel).
                                     where(MessageModel.channel_id==channel).
                                     limit(30).
                                     offset(offset).
                                     order_by(MessageModel.id.desc())).scalars()
+        if redisLen == 0 and offset == 0:
+            messageList = [json.dumps({"text": message.text, "username": message.username}) for message in messages]
+            if messageList:
+                current_app.r.rpush(channel, *(messageList))
+                return current_app.r.lrange(channel, offset, offset + 29)
         return ReturnMessageSchema(many=True).dump(messages)
     else:
         if current_app.r.expiretime(channel) == -1:
@@ -63,21 +69,8 @@ def prev_messages(data):
         if page < 1:
             page = 1
         offset_value = (page * 30)
-        if offset_value == 30 and current_app.r.llen(data['channel_id']) >= 60:
-            messages = prevMsgs(data['channel_id'], 30)
-            emit("load_prev", messages, to=request.sid)
-            return
-        try:
-            messages = db.session.execute(
-                db.select(MessageModel)
-                .where(MessageModel.channel_id == data["channel_id"])
-                .limit(30)
-                .offset(offset_value)
-                .order_by(MessageModel.id.desc())
-            ).scalars()
-            emit("load_prev", ReturnMessageSchema(many=True).dump(messages), to=request.sid)
-        except SQLAlchemyError:
-            return
+        messages = prevMsgs(data['channel_id'], offset_value)
+        emit("load_prev", messages, to=request.sid)
         
 @socketio.on("channels_update")
 def update_channels(data):
@@ -109,6 +102,7 @@ def on_join(data):
                 channel = db.session.execute(db.select(ChannelModel.id).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
                 if not channel:
                     return
+            current_app.logger.info(channel)
             username = return_username()
             admin = False
             user_id = session.get('_user_id')
@@ -133,14 +127,13 @@ def on_join(data):
                     join_room(channel)
                     join_room(room.id)
                     messages = prevMsgs(channel, 0)
-                    emit("load_prev", messages, to=request.sid)
                     emit('join', {"room": room.name, "channel_id": channel, "room_id": room.id, "admin": admin}, to=request.sid)
+                    emit("load_prev", messages, to=request.sid)
                     emit('message_json', {"message" : username + " joined the channel"}, to=channel)
                     return
             join_room(channel)
             join_room(room.id)
             messages = prevMsgs(channel, 0)
-            emit("load_prev", messages, to=request.sid)
             room.people += 1
             try:
                 db.session.add(room)
@@ -148,6 +141,7 @@ def on_join(data):
             except SQLAlchemyError:
                 return emit('join', False, to=request.sid)
             emit('join', {"room": room.name, "channel_id": channel, "room_id": room.id, "admin": admin}, to=request.sid)
+            emit("load_prev", messages, to=request.sid)
             emit('message_json', {"message" : username + " joined the channel"}, to=channel)
         else:
             return emit('join', False, to=request.sid)

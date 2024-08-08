@@ -8,14 +8,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="../static/css/styles.css">
     </head>
-    <body onload="connect_to_server()">
+    <body>
         <main>
             <div class="container">
                 <a href="/" target="_self"><img src="{{ url_for('static', filename='images/logo.png') }}" /></a>
                 <h1>ChatRoom</h1>
                 <div class="sn-container">
                 <form id = "sign-up" method="post">
-                    
+                    {{ form.csrf_token }}
                     <h2>Sign Up</h2>
                     {{ form.email }}
                     {% if form.email.errors %}

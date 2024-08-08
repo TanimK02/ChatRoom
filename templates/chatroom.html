@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../static/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&display=swap" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <main>
@@ -27,6 +28,7 @@
             </div>
             <button id="MR-button">My Rooms</button>
             <a href="/logout"><button id="Log Out">Log Out</button></a>
+            <a href="/edit_account"><button>Edit Account</button></a>
         </header>
 
         <!-- Rooms Container -->
@@ -48,6 +50,7 @@
         <!-- Room Creator Div -->
         <div id="room-creator-div">
             <form id="room-creator-form" action="/room/create" method="post">
+                {{ form.hidden_tag() }}
                 <p><button id="rooms-creator-x-button">X</button></p>
                 <h2 id="create-h2">Create Room</h2>
                 <input name="name" type="text" placeholder="name"/>

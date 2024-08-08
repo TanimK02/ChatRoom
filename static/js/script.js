@@ -37,6 +37,11 @@ let chatPage = 1;
 let canScroll = true;
 
 // Utility Functions
+
+const getCSRFToken = () => {
+    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+};
+
 const clearMsg = () => {
     msgList.innerHTML = "";
     chatPage = 1;
@@ -51,9 +56,18 @@ const leaveRC = () => {
 const leaveNcLear = () => {
     leaveRC();
     clearMsg();
-    channelList.innerHTML = "";
+    clearChs();
     createChBtn.disabled = true;
     edChBtn.disabled = true;
+};
+
+const clearChs = () => {
+    channelList.querySelectorAll("li").forEach(element => {
+        if (!element.classList.contains(".necessary")) {
+            element.remove();
+        };
+            
+    })
 };
 
 const sendMessage = () => {
@@ -138,7 +152,10 @@ const loadMyRooms = (result) => {
             joinerDiv.querySelector("#room-delete").addEventListener("click", async() => {
                 leaveNcLear()
                 try{
-                    const response = await fetch(`/delete_room/${room.id}`);
+                    const csrfToken = getCSRFToken();
+                    const response = await fetch(`/delete_room/${room.id}`,
+                        {headers: {'X-CSRFToken': csrfToken}}
+                    );
                     if (response.ok) {
                         console.log('Delete successful.');
                         joinerDiv.querySelector("#room-delete").disabled = true;
@@ -171,7 +188,7 @@ const getMyRooms = async () => {
 };
 
 const loadChannels = (result) => {
-    channelList.innerHTML = "";
+    clearChs();
     result.forEach((channel) => {
         const li = document.createElement("li");
         const el = document.createElement("button");
@@ -186,7 +203,6 @@ const loadChannels = (result) => {
                 "channel_id": `${channel.id}`
             });
             edChDiv.querySelector("h1").textContent = channel.name.toUpperCase();
-            console.log(channel);
         })
     } )
 };
@@ -200,9 +216,11 @@ const getChannels = async () => {
 const addChannel = async() => {
     const name = channelAdd.querySelector("input").value;
 try {
+    const csrfToken = getCSRFToken();
     const response = await fetch('/create_channel', {
         method: "POST",
         headers: {
+            "X-CSRFToken": csrfToken,
             "Content-Type": "application/json"
         },
         body: JSON.stringify({ "room": roomId, "name": name })
@@ -228,7 +246,7 @@ const openMChannels = () => {
     close.textContent = "Close Window";
     close.style.backgroundColor = "red";
     close.style.color = "white";
-    close.classList.add("close");
+    close.classList.add("close", "necessary");
     close.addEventListener("click", () => {
         channelList.style.display = "none";
     });
@@ -312,7 +330,7 @@ socket.on('join', (data) => {
         error.textContent = "Failed to join room";
         error.classList.add("errors");
         joinerDiv.querySelector("h2").insertAdjacentElement("afterend", error);
-        channelList.innerHTML = "";
+        clearChs();
     }
 });
 
@@ -425,11 +443,13 @@ edChDiv.querySelector(".ed-x").addEventListener("click", ()=> edChDiv.style.disp
 edChDiv.querySelector("#ch-name-btn").addEventListener("click", async() => {
     const new_name = edChDiv.querySelector("#new-name").value;
     if (new_name !== ""){
+        const csrfToken = getCSRFToken();
         try {
             const response = await fetch("/edit_channel", {
             method: "PUT",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
             },
             body: JSON.stringify({ "room": roomId, "channel_id": server, "new_name": new_name})
             
@@ -447,10 +467,12 @@ edChDiv.querySelector("#ch-name-btn").addEventListener("click", async() => {
 
 edChDiv.querySelector("#ch-delete-btn").addEventListener("click", async() => {
     try {
+        const csrfToken = getCSRFToken();
         const response = await fetch("/delete_channel", {
         method: "Delete",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
         },
         body: JSON.stringify({ "room": roomId, "channel_id": server})
     });
