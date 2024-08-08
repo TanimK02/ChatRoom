@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, post_dump
+from marshmallow import Schema, fields, post_dump, validate
 from flask_wtf import FlaskForm
 from wtforms import StringField, validators
 
@@ -50,6 +50,6 @@ class ReturnMessageSchema(Schema):
     username = fields.Str()
 
 class EditAccountSchema(Schema):
-    new_name = fields.Str(required=False)
+    new_name = fields.Str(required=False, validate=validate.Length(min=6, max=20))
     old_pass = fields.Str(required=False)
-    new_pass = fields.Str(required=False)
+    new_pass = fields.Str(required=False, validate=validate.Length(min=8, max=60))

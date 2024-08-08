@@ -16,18 +16,32 @@
         {% if name %}
         <h1 id="username">Username: {{name}}</h1>
         {% endif %}
-        <ul id="alerts" class="alerts"></ul>
+        <ul class="alerts1"></ul>
         <div class="name-edit-div">
         <input type="text" id="new-acc-name">
         <button id="acc-name-btn">Change Name</button>
         </div>
+        <div>
         <button id="acc-delete-btn">Delete Account</button>
+        <button id="change-password-btn">Change Password</button>
+        </div>
         <div id="del-div" class = "delete-account">
             <button id="del-x" class="del-x">x</button>
             <h2>Delete Account</h2>
+            <ul class="alerts2"></ul>
             <label for="password">Enter Password:</label>
-            <input type="password" id="password" placeholder="password">
+            <input type="text" id="password" placeholder="password">
             <button id="delete-confirm">Confirm</button>
+        </div>
+        <div id="change-pass" class = "delete-account">
+            <button id="pass-x" class="del-x">x</button>
+            <h2>Change Password</h2>
+            <ul class="alerts3"></ul>
+            <label for="old_password">Enter Old Password:</label>
+            <input type="text" id="old_password" placeholder="password">
+            <label for="new_password">Enter New Password:</label>
+            <input type="text" id="new_password" placeholder="password">
+            <button id="password-confirm">Confirm</button>
         </div>
     </div>
     </main>

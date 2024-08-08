@@ -112,6 +112,19 @@ class EditAccount(MethodView):
                 return {"message": "Account name change success", "new_name": data["new_name"]}, 200
             except SQLAlchemyError:
                 abort(400, description="Something went wrong while changing your username.")
+        elif data.get("new_pass", None) and data.get("old_pass"):
+            user = db.session.execute(db.select(UserModel).where(UserModel.id==(session.get('_user_id')))).scalar_one_or_none()
+            if not user:
+                current_app.logger.info("1")
+                abort(400, description="No user")
+            user.password = bcrypt.hashpw(data["new_pass"].encode("utf-8"), bcrypt.gensalt())
+            try:
+                current_app.logger.info("2")
+                db.session.add(user)
+                db.session.commit()
+                return {"message": "password change"}, 200
+            except SQLAlchemyError:
+                abort(400, description="Something went wrong while changing your password.")
         current_app.logger.info("3")
         abort(400, description="Necessary fields not filled out.")
 
