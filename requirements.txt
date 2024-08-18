@@ -17,3 +17,5 @@ flask-socketio
 gunicorn
 gevent
 flask-cors
+pytest
+fakeredis[json]

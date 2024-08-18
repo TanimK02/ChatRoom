@@ -12,8 +12,8 @@ class LoginForm(FlaskForm):
     password = StringField("password", [validators.InputRequired()], render_kw={"autocorrect": "off", "autocapitalize": "off", "autocomplete": "off", "placeholder": "password"})
 
 class RoomForm(FlaskForm): 
-    name = StringField("Room Name", [validators.Length(max=20, message="Room name can only have 20 characters max."), validators.InputRequired()], render_kw={"autocorrect": "off", "autocapitalize": "off", "autocomplete": "off", "placeholder": "Room Name"} )
-    password = StringField("Password", [validators.Length(max=20, message="Password is 20 characters max")], render_kw={"autocorrect": "off", "autocapitalize": "off", "autocomplete": "off", "placeholder": "Password"} )
+    name = StringField("Room Name", [validators.Length(min=6, max=20, message="Room name can only have 20 characters max."), validators.InputRequired()], render_kw={"autocorrect": "off", "autocapitalize": "off", "autocomplete": "off", "placeholder": "Room Name"} )
+    password = StringField("Password", [validators.Length(min=1, max=20, message="Password is 20 characters max"), validators.Optional(strip_whitespace=True)], render_kw={"autocorrect": "off", "autocapitalize": "off", "autocomplete": "off", "placeholder": "Password"} )
 
 class RoomsReturnSchema(Schema):
     id = fields.Str(dump_only=True)

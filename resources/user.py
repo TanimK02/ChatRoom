@@ -8,8 +8,8 @@ from db import db
 from flask import request, render_template, url_for, redirect, session, current_app
 from flask_smorest import Blueprint
 from flask import flash, current_app, request, abort
-import re
 import bcrypt
+import socketio
 
 user_blp = Blueprint("Users", "users", description="operations on users")
 
@@ -33,12 +33,12 @@ class HomeOrLogin(MethodView):
                     "sid": ""
                 })
                 current_app.r.expire(session.get('_user_id'), 88000)
-                return redirect(url_for("Users.home"))
+                return redirect(url_for("Users.home"), code=302)
             else:
                 flash("Username or password is wrong/doesn't exist.")
                 return render_template("index.html", form = form, success="Username or password is wrong/doesn't exist.")
         else:
-            render_template("index.html", form = LoginForm())
+            return render_template("index.html", form = LoginForm())
 
 @user_blp.route("/home")
 @login_required
@@ -71,7 +71,7 @@ class SignUp(MethodView):
                 db.session.commit()
             except SQLAlchemyError:
                 return render_template("sign-up.html", form=form)
-            return redirect(url_for("Users.HomeOrLogin", success="Account Made Successfully"))
+            return redirect(url_for("Users.HomeOrLogin", success="Account Made Successfully"), code=302)
         else:
             return render_template("sign-up.html", form=form)
 
@@ -80,8 +80,9 @@ class LogOut(MethodView):
 
     @login_required
     def get(self):
-        sid = current_app.r.hget(session.get('_user_id'), "sid")
-        disconnect(sid=sid, namespace="/")
+        if hasattr(request, "sid"):
+            sid = current_app.r.hget(session.get('_user_id'), "sid") 
+            disconnect(sid=sid, namespace="/")
         current_app.r.delete(session.get('_user_id'))
         logout_user()
         return redirect(url_for("Users.HomeOrLogin"))
@@ -114,18 +115,15 @@ class EditAccount(MethodView):
                 abort(400, description="Something went wrong while changing your username.")
         elif data.get("new_pass", None) and data.get("old_pass"):
             user = db.session.execute(db.select(UserModel).where(UserModel.id==(session.get('_user_id')))).scalar_one_or_none()
-            if not user:
-                current_app.logger.info("1")
+            if not user or not bcrypt.checkpw(data["old_pass"].encode("utf-8"), user.password):
                 abort(400, description="No user")
             user.password = bcrypt.hashpw(data["new_pass"].encode("utf-8"), bcrypt.gensalt())
             try:
-                current_app.logger.info("2")
                 db.session.add(user)
                 db.session.commit()
                 return {"message": "password change"}, 200
             except SQLAlchemyError:
                 abort(400, description="Something went wrong while changing your password.")
-        current_app.logger.info("3")
         abort(400, description="Necessary fields not filled out.")
 
     @login_required
@@ -138,9 +136,15 @@ class EditAccount(MethodView):
                 try:
                     for room in user.rooms.all():
                         if id in room.roles["Owner"]:
+                            socketio.emit("channels_update", [], to=room.id)
+                            for channel in room.channels.all():
+                                socketio.close_room(channel.id)
+                                current_app.r.delete(channel.id)
+                            socketio.close_room(room.id)
                             db.session.delete(room)
                     db.session.delete(user)
                     db.session.commit()
+                    logout_user()
                     return "", 204
                 except SQLAlchemyError:
                     abort(400, description="Failed to delete user")

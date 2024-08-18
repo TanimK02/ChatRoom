@@ -7,7 +7,7 @@ from schemas import RoomForm, RoomsReturnSchema
 from db import db
 from flask import request, current_app, session
 from flask_smorest import Blueprint, abort
-from flask_socketio import rooms, leave_room
+from flask_socketio import rooms
 
 room_blp = Blueprint("Rooms", "rooms", description = "Operations on rooms")
 
@@ -23,7 +23,7 @@ class RoomOps(MethodView):
                 return {"error": "Can't make any more rooms"}, 400
             check = db.session.execute(db.select(RoomModel.name).where(RoomModel.name==form.name.data)).scalar_one_or_none()
             if check:
-                return {"error": "room name taken"}
+                return {"error": "room name taken"}, 400
             room = RoomModel(
                 name = form.name.data,
                 roles = {"Owner": f"{current_user.id}",
@@ -32,7 +32,7 @@ class RoomOps(MethodView):
             )
             room.users.append(current_user)
             
-            if hasattr(form, "password"):
+            if form.password.data:
                 room.password = form.password.data
             try:
                 db.session.add(room)
@@ -83,9 +83,10 @@ def myRooms():
 def deleteRoom(id):
     if not isinstance(id, str):
         abort(400, message="needs to be string.")
+    rooms = [room.id for room in current_user.rooms if room.id == id]
+    if id not in rooms:
+        abort(400, message="Not in room")
     room = db.session.get(RoomModel, id)
-    if not room:
-        abort(400, message="Room doesn't exist.")
     if room.roles["Owner"] == session.get('_user_id'):
         try:
             socketio.emit("channels_update", [], to=room.id)
@@ -104,9 +105,11 @@ def deleteRoom(id):
         room.users.remove(user)
         room.people -= 1
         try:
-            sid = current_app.r.hget(session.get('_user_id'), "sid")
-            for room in rooms(sid, namespace="/"):
-                leave_room(room=room, sid=sid, namespace="/")
+            if hasattr(request, "sid"):
+                sid = current_app.r.hget(session.get('_user_id'), "sid")
+                for room in rooms(sid, namespace="/"):
+                    leave_room(room=room, sid=sid, namespace="/")
+            db.session.add(room)
             db.session.commit()
             return {"Status": "left room successfully"}, 200
         except SQLAlchemyError:

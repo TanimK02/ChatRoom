@@ -18,9 +18,10 @@ def create_channel(data):
     room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data["room"])).scalar_one_or_none()
     user = session.get('_user_id')
     if room:
-        roles = room.roles 
-    if room and (user in roles["Owner"] or user in roles["Admins"]):
-        
+        roles = room.roles
+    else:
+        abort(400, message="Wrong room.")
+    if user and (user in roles["Owner"] or user in roles["Admins"]):
         channel = ChannelModel(name=data["name"], room_id=room.id)
         room.channels.append(channel)
         try:
@@ -31,16 +32,18 @@ def create_channel(data):
         except SQLAlchemyError:
             abort(400, message="Something went wrong creating the channel.")
     else:
-        abort(400, message="Room does not exist or you don't have the necessary role.")
+        abort(400, message="You don't have the necessary role.")
 
 @channel_blp.route("/delete_channel/" , methods=["DELETE"])
 @login_required
 @channel_blp.arguments(DeleteChannelSchema)
 def delete_channel(data):
     room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data["room"])).scalar_one_or_none()
+    if not room:
+        abort(404, description="Room not found.")
     user = session.get('_user_id')
     roles = room.roles
-    if room and (user in roles["Owner"] or user in roles["Admins"]):
+    if user and (user in roles["Owner"] or user in roles["Admins"]):
         if room.channels.count() == 1:
             abort(400, message="Can't delete last channel")
         channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
@@ -65,9 +68,11 @@ def delete_channel(data):
 @channel_blp.arguments(EditChannelSchema)
 def edit_channel(data):
     room = db.session.execute(db.select(RoomModel).where(RoomModel.id==data["room"])).scalar_one_or_none()
+    if not room:
+        abort(404, description="Room not found.")
     user = session.get('_user_id')
     roles = room.roles
-    if room and (user in roles["Owner"] or user in roles["Admins"]):
+    if user and (user in roles["Owner"] or user in roles["Admins"]):
         channel = db.session.execute(db.select(ChannelModel).where(ChannelModel.id==data["channel_id"]).where(ChannelModel.room_id==room.id)).scalar_one_or_none()
         if channel:
             channel.name = data["new_name"]
@@ -89,6 +94,8 @@ def edit_channel(data):
 @channel_blp.response(200, ReturnChannelSchema(many=True))
 def load_channels(id):
     user = session.get('_user_id')
-    room = db.session.execute(db.select(RoomModel).where(RoomModel.id==id)).scalar()
+    room = db.session.execute(db.select(RoomModel).where(RoomModel.id==id)).scalar_one_or_none()
+    if not room:
+        abort(404, description="Room not found.")
     if db.session.execute(db.select(user_rooms).where(user_rooms.c.user==user).where(user_rooms.c.room==id)).scalar_one_or_none() or not room.password:
         return room.channels.all()
